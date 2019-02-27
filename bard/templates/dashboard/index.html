@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block body %}
+
+{% if 'series' in parts %}
+{% include "dashboard/series.html" %}
+{% endif %}
+
+{% if 'episodes' in parts %}
+{% include "dashboard/episodes.html" %}
+{% endif %}
+
+{% if 'torrents' in parts %}
+{% include "dashboard/torrents.html" %}
+{% endif %}
+
+{% if 'tasks' in parts %}
+{% include "dashboard/tasks.html" %}
+{% endif %}
+
+{% endblock %}

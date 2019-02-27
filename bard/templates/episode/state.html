@@ -1,0 +1,11 @@
+{% macro render_episode_state(episode) %}
+{% if episode.state == 0 %}
+<i>skipped</i>
+{% elif episode.state == 1 %}
+<i style='color: red'>wanted</i>
+{% elif episode.state == 2 %}
+<i style='color: orange'>fetched</i>
+{% elif episode.state == 3 %}
+<i style='color: green'>downloaded</i>
+{% endif %}
+{% endmacro %}

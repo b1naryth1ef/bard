@@ -1,0 +1,27 @@
+{% from 'torrent/list.html' import render_torrent_list %}
+
+{% extends "base.html" %}
+{% block body %}
+<h1>Torrents for {{ episode.to_string() }}</h1>
+<div>
+  <table>
+    <tr>
+      <th>Title</th>
+      <th>Size</th>
+      <th>S/L</th>
+    </tr>
+    {% for torrent in torrents %}
+    <tr>
+      <td>{{ torrent.title }}</td>
+      <td>{{ torrent.size }}</td>
+      <td>{{ torrent.seeders }} / {{ torrent.leechers }}</td>
+      {% if g.acl == 'admin' %}
+      <td>
+        <a title="Fetch Torrent" style="color: green" href="/episodes/{{ episode.id }}/fetch?id={{ torrent.id }}">F</a>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

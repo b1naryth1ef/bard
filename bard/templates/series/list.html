@@ -1,0 +1,29 @@
+{% macro render_series_list(series, external_result=false) %}
+<table>
+  <tr>
+    {% if not external_result %}<th>ID</th>{% endif %}
+    <th>Name</th>
+    <th>Network</th>
+  </tr>
+  {% for show in series %}
+  <tr>
+    {% if not external_result %}
+    <td><a href='/series/{{ show.id }}'>{{ show.id }}</a></td>
+    {% endif %}
+    <td>{{ show.name }}</td>
+    <td>{{ show.network }}</td>
+    {% if g.acl != 'guest' %}
+      {% if external_result %}
+        <td><a href="/series/add?provider_id={{ show.provider_id }}">ADD</a></td>
+      {% else %}
+        {% if show.subscribed %}
+        <td><a href="/series/{{ show.id }}/unsub">Unsub</a></td>
+        {% else %}
+        <td><a href="/series/{{ show.id }}/sub">Sub</a></td>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </tr>
+  {% endfor %}
+</table>
+{% endmacro %}

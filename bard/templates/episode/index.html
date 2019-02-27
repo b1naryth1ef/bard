@@ -1,0 +1,20 @@
+{% from 'torrent/list.html' import render_torrent_list %}
+{% from 'media/list.html' import render_media_list %}
+
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ episode.to_string() }}</h1>
+<a href="/series/{{ episode.series.id }}">Series</a>
+<a href="/episodes/{{ episode.id }}/torrents">Torrents</a>
+
+<div>
+  <h3>Fetches</h3>
+  {{ render_torrent_list(episode.torrents) }}
+</div>
+
+<div>
+  <h3>Media</h3>
+  {{ render_media_list(episode.medias) }}
+</div>
+
+{% endblock %}

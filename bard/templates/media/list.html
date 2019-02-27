@@ -1,0 +1,29 @@
+{% macro render_media_list(medias, page=0) %}
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Episode</th>
+    <th>Resolution</th>
+    <th>Video Codec</th>
+    <th>Audio Codec</th>
+    <th>Duration</th>
+    <th>Bitrate</th>
+  </tr>
+  {% for media in medias %}
+  <tr>
+    <td>{{ media.id }}
+    <td><a href="/episodes/{{ media.episode.id }}">{{ media.episode.to_string() }}</a></td>
+    <td>{{ media.width }}x{{ media.height }}</td>
+    <td>{{ media.video_codec }}</td>
+    <td>{{ media.audio_codec }}</td>
+    <td>{{ media.duration }}</td>
+    <td>{{ media.bitrate }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% if page > 0 %}
+<a {% if page == 1 %}disabled{% endif %} href="?page={{ page - 1 }}">Previous</a>
+{{ page }}
+<a {% if not medias %}disabled{% endif %} href="?page={{ page + 1 }}">Next</a>
+{% endif %}
+{% endmacro %}

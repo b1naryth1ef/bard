@@ -1,0 +1,16 @@
+{% macro render_episode_actions(episode) %}
+{% if g.acl != 'guest' %}
+  {% if episode.state == 0 %}
+    {% if episode.aired %}
+      <a href='/episodes/{{ episode.id }}/request'>Download</a>
+    {% else %}
+      <a href='/episodes/{{ episode.id }}/request'>Want</a>
+    {% endif %}
+  {% elif episode.state == 2 and g.acl == 'admin' %}
+    <a href='/episodes/{{ episode.id }}/refetch'>Refetch</a>
+  {% endif %}
+  {% if episode.state != 0 and episode.state != 3 %}
+    <a href='/episodes/{{ episode.id }}/skip'>Skip</a>
+  {% endif %}
+{% endif %}
+{% endmacro %}

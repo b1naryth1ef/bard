@@ -1,0 +1,12 @@
+click==7.0
+Flask==1.0.2
+gevent==1.4.0
+holster==2.0.0
+lxml==3.7.2
+peewee==3.8.2
+pyquery==1.4.0
+pytvdbapi==0.5.0
+requests==2.21.0
+disco-py==0.0.12
+plexapi==3.1.0
+rarfile==3.0

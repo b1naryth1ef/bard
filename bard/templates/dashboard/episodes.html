@@ -1,0 +1,12 @@
+{% from 'episode/list.html' import render_episode_list %}
+<div>
+  <h2>Episodes</h2>
+  <h3>Stalled</h3>
+  {{ render_episode_list(stalled_episodes) }}
+  <h3>Dead</h3>
+  {{ render_episode_list(dead_episodes) }}
+  <h3>Upcoming</h3>
+  {{ render_episode_list(upcoming_episodes) }}
+  <h3>Recently Aired</h3>
+  {{ render_episode_list(recently_aired_episodes) }}
+</div>

@@ -1,0 +1,93 @@
+body {
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  padding-bottom: 0.9rem;
+  max-width: 1140;
+}
+
+nav > a {
+  color: #007bff;
+  text-decoration: none;
+  background-color: transparent;
+  font-size: 1rem;
+  padding-right: 0.25em;
+}
+
+.nav-title {
+  font-size: 1.25rem;
+  color: rgba(0,0,0,0.9);
+  padding-right: 0.75em;
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.2em;
+}
+
+div {
+  padding-bottom: 0.5em;
+}
+
+input::-webkit-input-placeholder {
+  text-align: right;
+}
+input:-moz-placeholder {
+  text-align: right;
+}
+input::-moz-placeholder {
+  text-align: right;
+}
+input:-ms-input-placeholder {
+  text-align: right;
+}
+
+.quick-jump {
+  width: 5.1em;
+  -webkit-transition: all .5s ease;
+  -moz-transition: all .5s ease;
+  transition: all .5s ease;
+}
+.quick-jump:focus {
+  width: 16em;
+}
+
+.tabs {
+  position: relative;
+  clear: both;
+}
+
+.tabs .tab {
+  float: left;
+}
+
+.tabs .tab .content {
+  position: absolute;
+  background-color: white;
+  left: 0px;
+  width: 100%;
+}
+
+.checkboxtab {
+  display: none;
+}
+
+.tab label {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.checkboxtab:checked ~ label {
+  color: #ab70ff;
+}
+
+.content {
+  display: none;
+}
+
+.checkboxtab:checked ~ .content {
+  display: block;
+}

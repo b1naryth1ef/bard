@@ -1,0 +1,26 @@
+{% from 'episode/state.html' import render_episode_state %}
+{% from 'episode/actions.html' import render_episode_actions %}
+
+{% macro render_episode_list(episodes) %}
+<table>
+  <tr>
+    <th>ID</th>
+    <th>State</th>
+    <th>Episode</th>
+    <th>Show</th>
+    <th>Title</th>
+    <th>Airdate</th>
+  </tr>
+  {% for episode in episodes %}
+  <tr>
+    <td><a href="/episodes/{{ episode.id }}">{{ episode.id }}</a></td>
+    <td>{{ render_episode_state(episode) }}</td>
+    <td>{{ episode.season_episode_id }}</td>
+    <td>{{ episode.series.name }}</td>
+    <td>{{ episode.name }}</td>
+    <td>{{ episode.airdate }}</td>
+    <td>{{ render_episode_actions(episode) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endmacro %}

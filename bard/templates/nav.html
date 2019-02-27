@@ -1,0 +1,15 @@
+<nav>
+  <a class="nav-title" href="/">Bard</a>
+  <a href="/series">series</a>
+  <a href="/episodes">episodes</a>
+  <a href="/torrents">torrents</a>
+  <a href="/media">media</a>
+  {% if g.acl == 'admin' %}
+  <a href="/tasks">tasks</a>
+  {% endif %}
+  <div style="float: right">
+    <form action="/series/go">
+      <input class="quick-jump" type="text" name="query" tabindex=1 placeholder="quick jump">
+    </form>
+  </div>
+</nav>

@@ -1,0 +1,6 @@
+{% from 'torrent/list.html' import render_torrent_list %}
+<div>
+  <h2>Torrents</h2>
+  <h3>Active</h3>
+  {{ render_torrent_list(active_torrents) }}
+</div>

@@ -1,0 +1,24 @@
+{% from 'media/list.html' import render_media_list %}
+
+{% extends "base.html" %}
+{% block body %}
+{% if stats %}
+<div>
+  <h2>Stats</h2>
+  <h3>Video Codecs</h3>
+  <ul>
+  {% for count, codec in stats["video_codecs"] %}
+    <li><a href="?video_codec={{ codec }}">{{ codec }}</a> - {{ count }}</li>
+  {% endfor %}
+  </ul>
+
+  <h3>Audio Codecs</h3>
+  <ul>
+  {% for count, codec in stats["audio_codecs"] %}
+    <li><a href="?audio_codec={{ codec }}">{{ codec }}</a> - {{ count }}</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{{ render_media_list(media, page=page) }}
+{% endblock %}

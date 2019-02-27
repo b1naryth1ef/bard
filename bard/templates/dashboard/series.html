@@ -1,0 +1,14 @@
+{% from 'series/list.html' import render_series_list %}
+<div>
+  <h2>Series</h2>
+  <div>
+    <form action="/series/search">
+      Add New Series:
+      <input type="text" name="query">
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+  <div>
+    {{ render_series_list(series) }}
+  </div>
+</div>

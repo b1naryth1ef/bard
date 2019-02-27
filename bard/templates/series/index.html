@@ -1,0 +1,36 @@
+{% from 'episode/list.html' import render_episode_list %}
+
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ series.name }}</h1>
+{% if g.acl != 'guest' %}
+  {% if series.subscribed %}
+  <a href="/series/{{ series.id }}/unsub">Unsubscribe</a>
+  {% else %}
+  <a href="/series/{{ series.id }}/sub">Subscribe</a>
+  {% endif %}
+{% endif %}
+
+{% if g.acl == 'admin' %}
+  <a href="/series/{{ series.id }}/update">Update</a>
+  <a style="color: red" onclick="return confirm('Are you sure ?')" href="/series/{{ series.id }}/delete">Delete</a>
+{% endif %}
+
+<h2>Description</h2>
+<p>{{ series.desc }}</p>
+
+<h2>Seasons</h2>
+<div class="tabs">
+{% for season in series.seasons %}
+<div class="tab">
+  <input id="season-{{ season.number }}" type="radio" name="tabs" checked class="checkboxtab">
+  <label for="season-{{ season.number }}" class="label">{{ season.number }}</label>
+  <section class="content" id="season-{{ season.number }}">
+    <h3>Season {{ season.number }}</h3>
+    {{ render_episode_list(season.episodes) }}
+  </section>
+</div>
+{% endfor %}
+
+</div>
+{% endblock %}

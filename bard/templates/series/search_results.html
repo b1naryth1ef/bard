@@ -1,0 +1,7 @@
+{% from 'series/list.html' import render_series_list %}
+
+{% extends "base.html" %}
+{% block body %}
+<h1>Search Results for "{{ query }}"</h1>
+{{ render_series_list(results, true) }}
+{% endblock %}
