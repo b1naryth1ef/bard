@@ -13,3 +13,25 @@ Bard is primarily developed for my personal use case and thus has various rough 
 ## Installation
 
 Eventually I hope to have a proper guide, but for now you just need to install Bard inside a venv (based on the requirements file), and then run `./manage.py serve`.
+
+## Screenshots
+
+### Series Overview
+
+![](https://i.imgur.com/AstV0dC.png)
+
+### Episodes Overview
+
+![](https://i.imgur.com/4lT6QuA.png)
+
+### Torrents Overview
+
+![](https://i.imgur.com/KR5EE9y.png)
+
+### Series Details
+
+![](https://i.imgur.com/KRXXkkg.png)
+
+### Episode Details
+
+![](https://i.imgur.com/uMSRygd.png)
