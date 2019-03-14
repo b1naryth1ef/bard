@@ -36,7 +36,7 @@ def init_db(app):
     obj = urlparse.urlparse(app.config['database'])
 
     if obj.scheme == "sqlite":
-        database.initialize(SqliteDatabase(obj.netloc, pragmas={'foreign_keys': 1}))
+        database.initialize(SqliteDatabase(obj.netloc, pragmas={'foreign_keys': 1}, check_same_thread=False))
     else:
         raise Exception('Unsupported database adapter `{}`, for DB url `{}`'.format(obj.scheme, app.config['database']))
 

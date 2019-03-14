@@ -1,16 +1,16 @@
-{% macro render_episode_actions(episode) %}
+{% macro render_episode_actions(episode, redirect_url='') %}
 {% if g.acl != 'guest' %}
   {% if episode.state == 0 %}
     {% if episode.aired %}
-      <a href='/episodes/{{ episode.id }}/request'>Download</a>
+      <a href='/episodes/{{ episode.id }}/request?r={{ redirect_url }}'>Download</a>
     {% else %}
-      <a href='/episodes/{{ episode.id }}/request'>Want</a>
+      <a href='/episodes/{{ episode.id }}/request?r={{ redirect_url }}'>Want</a>
     {% endif %}
   {% elif episode.state == 2 and g.acl == 'admin' %}
-    <a href='/episodes/{{ episode.id }}/refetch'>Refetch</a>
+    <a href='/episodes/{{ episode.id }}/refetch?r={{ redirect_url }}'>Refetch</a>
   {% endif %}
   {% if episode.state != 0 and episode.state != 3 %}
-    <a href='/episodes/{{ episode.id }}/skip'>Skip</a>
+    <a href='/episodes/{{ episode.id }}/skip?r={{ redirect_url }}'>Skip</a>
   {% endif %}
 {% endif %}
 {% endmacro %}

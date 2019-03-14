@@ -47,7 +47,7 @@ class TVDBInfoProvider(object):
             number=str(obj.EpisodeNumber),
             name=obj.EpisodeName,
             desc=obj.Overview,
-            airdate=obj.FirstAired,
+            airdate=obj.FirstAired or None,
             imdb_id=obj.IMDB_ID,
         )
 

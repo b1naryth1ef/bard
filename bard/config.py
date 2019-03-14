@@ -14,6 +14,7 @@ DEFAULT_CONFIG = {
     'directories': {
         'input': None,
         'output': None,
+        'temporary': None,
     },
     'seed_days': 16,
     'web': {

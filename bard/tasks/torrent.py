@@ -108,5 +108,6 @@ def unpack_torrent(torrent, rar_file):
         log.error('Failed to find video file to unpack from rar %s (%s)', torrent.id, rf.namelist())
         return
 
-    rf.extract(video_files[0], os.path.dirname(full_path))
-    _store_torrent_media(torrent, os.path.join(os.path.dirname(full_path), video_files[0]))
+    temporary_dir = bard.config['directories']['temporary']
+    rf.extract(video_files[0], temporary_dir)
+    _store_torrent_media(torrent, os.path.join(temporary_dir, video_files[0]))

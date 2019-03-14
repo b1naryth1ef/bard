@@ -23,11 +23,16 @@
 <div class="tabs">
 {% for season in series.seasons %}
 <div class="tab">
-  <input id="season-{{ season.number }}" type="radio" name="tabs" checked class="checkboxtab">
+  {% set current_season_tab = request.values.get('season') %}
+  <input id="season-{{ season.number }}" type="radio" name="tabs" class="checkboxtab"
+    {% if current_season_tab is none or current_season_tab == season.number %}
+    checked
+    {% endif %}
+  >
   <label for="season-{{ season.number }}" class="label">{{ season.number }}</label>
   <section class="content" id="season-{{ season.number }}">
     <h3>Season {{ season.number }}</h3>
-    {{ render_episode_list(season.episodes) }}
+    {{ render_episode_list(season.episodes, '/series/' + series.id|string + '?season=' + season.number|string ) }}
   </section>
 </div>
 {% endfor %}

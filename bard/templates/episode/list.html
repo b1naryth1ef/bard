@@ -1,7 +1,7 @@
 {% from 'episode/state.html' import render_episode_state %}
 {% from 'episode/actions.html' import render_episode_actions %}
 
-{% macro render_episode_list(episodes) %}
+{% macro render_episode_list(episodes, redirect_url='') %}
 <table>
   <tr>
     <th>ID</th>
@@ -19,7 +19,7 @@
     <td>{{ episode.series.name }}</td>
     <td>{{ episode.name }}</td>
     <td>{{ episode.airdate }}</td>
-    <td>{{ render_episode_actions(episode) }}</td>
+    <td>{{ render_episode_actions(episode, redirect_url) }}</td>
   </tr>
   {% endfor %}
 </table>

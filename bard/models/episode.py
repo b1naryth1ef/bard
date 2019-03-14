@@ -65,7 +65,7 @@ class Episode(BaseModel):
     def merge(self, other):
         self.name = other.name
         self.desc = other.desc
-        self.airdate = other.airdate
+        self.airdate = other.airdate or None
         self.imdb_id = other.imdb_id
 
     def to_string(self):

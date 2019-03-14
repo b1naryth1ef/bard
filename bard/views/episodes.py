@@ -1,6 +1,7 @@
 from flask import Blueprint, request, redirect, render_template, flash
 from httplib import NOT_MODIFIED
 from bard.util.deco import model_getter, acl
+from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
 
 
@@ -17,7 +18,7 @@ def episodes_request(episode):
 
     episode.state = Episode.State.WANTED
     episode.save()
-    return redirect(request.referrer)
+    return magic_redirect()
 
 
 @episodes.route('/episodes/<id>/skip')
@@ -29,7 +30,7 @@ def episodes_skip(episode):
 
     episode.state = Episode.State.NONE
     episode.save()
-    return redirect(request.referrer)
+    return magic_redirect()
 
 
 @episodes.route('/episodes/<id>/refetch')
@@ -41,7 +42,7 @@ def episodes_refetch(episode):
 
     episode.state = Episode.State.WANTED
     episode.save()
-    return redirect(request.referrer)
+    return magic_redirect()
 
 
 @episodes.route('/episodes/<id>')
@@ -72,4 +73,4 @@ def episode_fetch(episode):
         flash('Ok, started a download of that torrent for this episode', category='success')
     else:
         flash('Invalid or expired torrent', category='error')
-    return redirect('/episodes/{}'.format(episode.id))
+    return magic_redirect('/episodes/{}'.format(episode.id))
