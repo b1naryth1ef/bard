@@ -12,23 +12,26 @@ log = logging.getLogger(__name__)
 
 @task()
 def update_torrents():
-    torrents = list(Torrent.select().where(
-        (Torrent.state == Torrent.State.DOWNLOADING)
-    ))
+    torrents = {
+        i.fetch_provider_id: i for i in Torrent.select().where(
+            (Torrent.state == Torrent.State.DOWNLOADING)
+        )
+    }
 
     log.info('Updating %s torrents that are DOWNLOADING', len(torrents))
 
-    for torrent in torrents:
-        status = bard.providers.fetch.get_status(torrent)
-        if not status:
-            continue
-        torrent.state = status['state']
+    torrent_infos = list(bard.providers.fetch.get_torrent_info(torrents.values()))
+    for torrent_info in torrent_infos:
+        torrent = torrents.pop(torrent_info.id)
+        torrent.state = torrent_info.state
+        torrent.done_date = torrent_info.done_date
         torrent.save()
 
         if torrent.state in (Torrent.State.SEEDING, Torrent.State.COMPLETED):
-            process_torrent(torrent)
+            process_torrent(torrent, torrent_info.files)
 
-    return len(torrents)
+    # TODO: check if we have anything left in torrents
+    return len(torrent_infos)
 
 
 def _get_result_path(torrent, ext='mkv'):
@@ -54,44 +57,51 @@ def _store_torrent_media(torrent, source_path, keep=False):
     if not os.path.exists(final_destination_dir):
         os.mkdir(final_destination_dir)
 
-    if keep:
-        shutil.copy(source_path, final_destination_path)
-    else:
-        os.rename(source_path, final_destination_path)
+    try:
+        if keep:
+            shutil.copy(source_path, final_destination_path)
+        else:
+            os.rename(source_path, final_destination_path)
+    except:
+        log.exception(
+            'Failed to store torrent media (%s) %s -> %s (keep=%s): ',
+            torrent.id,
+            source_path,
+            final_destination_path,
+            keep,
+        )
+        raise
 
     os.chmod(final_destination_path, 0777)
 
 
 @task()
-def process_torrent(torrent):
+def process_torrent(torrent, files):
     log.debug('Processing torrent %s', torrent.id)
 
-    # Get the list of files
-    files = bard.providers.fetch.get_files(torrent)
+    try:
+        # If the torrent contains a rar file attempt to unpack that
+        rar_files = [i for i in files if i.endswith('.rar')]
+        if len(rar_files) == 1:
+            log.debug('Found rar file in torrent %s, unpacking...', torrent.id)
+            unpack_torrent(torrent, rar_files[0])
+            return
+        elif len(rar_files) > 1:
+            log.error('Found multiple rar files in torrent %s (%s)', torrent.id, rar_files)
+            return
 
-    # This really just means we tried to extract some media from the torrent
-    torrent.processed = True
-    torrent.save()
-
-    # If the torrent contains a rar file attempt to unpack that
-    rar_files = [i for i in files if i.endswith('.rar')]
-    if len(rar_files) == 1:
-        log.debug('Found rar file in torrent %s, unpacking...', torrent.id)
-        unpack_torrent(torrent, rar_files[0])
-        return
-    elif len(rar_files) > 1:
-        log.error('Found multiple rar files in torrent %s (%s)', torrent.id, rar_files)
-        return
-
-    video_files = [i for i in files if i.endswith('mkv')]
-    if len(video_files) == 1:
-        log.debug('Found video file in torrent %s, moving and reverse symlinking', torrent.id)
-        source_path = os.path.join(bard.config['directories']['input'], video_files[0])
-        _store_torrent_media(torrent, source_path, keep=True)
-        return
-    elif len(video_files) > 1:
-        log.error('Found multiple video files in torrent %s (%s)', torrent.id, video_files)
-        return
+        video_files = [i for i in files if i.endswith('mkv')]
+        if len(video_files) == 1:
+            log.debug('Found video file in torrent %s, moving and reverse symlinking', torrent.id)
+            source_path = os.path.join(bard.config['directories']['input'], video_files[0])
+            _store_torrent_media(torrent, source_path, keep=True)
+            return
+        elif len(video_files) > 1:
+            log.error('Found multiple video files in torrent %s (%s)', torrent.id, video_files)
+            return
+    finally:
+        torrent.processed = True
+        torrent.save()
 
 
 @task()

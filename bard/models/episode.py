@@ -55,7 +55,7 @@ class Episode(BaseModel):
         raw = bard.providers.download.get_torrent_contents(torrent_metadata.id)
 
         torrent = Torrent.from_result(self, torrent_metadata, raw)
-        torrent.uid = bard.providers.fetch.download(torrent)
+        torrent.fetch_provider_id = bard.providers.fetch.download(torrent)
         torrent.state = torrent.State.DOWNLOADING
         torrent.save()
 

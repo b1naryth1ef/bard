@@ -21,10 +21,10 @@ def find_torrent_for_episode(episode):
         return None
 
     # Filter out torrents we've already fetched
-    existing_torrents = Torrent.select(Torrent.provider_id).where(
+    existing_torrents = Torrent.select(Torrent.download_provider_id).where(
         (Torrent.episode == episode)
     )
-    existing_torrent_ids = [i.provider_id for i in existing_torrents]
+    existing_torrent_ids = [i.download_provider_id for i in existing_torrents]
     results = [i for i in results if i.id not in existing_torrent_ids]
 
     if not len(results):

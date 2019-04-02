@@ -24,7 +24,9 @@ def torrents_index(torrent):
 @torrent_getter
 @acl('admin')
 def torrents_process(torrent):
+    from bard import bard
     from bard.tasks.torrent import process_torrent
-    process_torrent(torrent)
+    info = next(bard.providers.fetch.get_torrent_info([torrent]), None)
+    process_torrent(torrent, files=info.files)
     flash('Processed torrent', category='success')
     return redirect(request.referrer)

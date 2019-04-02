@@ -135,6 +135,7 @@ class TransmissionClient(object):
 
 class TransmissionFetchProvider(object):
     STATUS_FIELDS = [
+        'hashString',
         'activityDate',
         'addedDate',
         'downloadDir',
@@ -179,36 +180,33 @@ class TransmissionFetchProvider(object):
     def remove(self, torrent):
         self.client(
                 'torrent-remove',
-                ids=[torrent.uid],
+                ids=[torrent.fetch_provider_id],
                 delete_local_data=True,
         )
 
-    def get_torrent_info(self, torrent):
-        data = self.client('torrent-get', ids=[torrent.uid], fields=self.STATUS_FIELDS)['torrents']
-        if not len(data):
-            return None
-        return data[0]
-
-    def get_done_date(self, torrent):
-        data = self.get_torrent_info(torrent)
-        return data['doneDate']
-
-    def get_status(self, torrent):
+    @staticmethod
+    def _get_state_from_info(info):
         from bard.models.torrent import Torrent
 
-        data = self.get_torrent_info(torrent)
-        if not data:
-            return {}
-        result = {}
-
-        if data['percentDone'] != 1:
-            result['state'] = Torrent.State.DOWNLOADING
-        elif data['isFinished']:
-            result['state'] = Torrent.State.COMPLETED
+        if info['percentDone'] != 1:
+            return Torrent.State.DOWNLOADING
+        elif info['isFinished']:
+            return Torrent.State.COMPLETED
         else:
-            result['state'] = Torrent.State.SEEDING
+            return Torrent.State.SEEDING
 
-        return result
+    def get_torrent_info(self, torrents):
+        from bard.providers.fetch import TorrentFetchInfo
+        data = self.client('torrent-get', ids=[
+            i.fetch_provider_id for i in torrents
+        ], fields=self.STATUS_FIELDS)['torrents']
 
-    def get_files(self, torrent):
-        return [i['name'] for i in self.get_torrent_info(torrent)['files']]
+        for item in data:
+            yield TorrentFetchInfo(
+                id=item['hashString'],
+                state=self._get_state_from_info(item),
+                done_date=item['doneDate'],
+                peers=item['peers'],
+                percent_done=item['percentDone'],
+                files=[i['name'] for i in item['files']],
+            )

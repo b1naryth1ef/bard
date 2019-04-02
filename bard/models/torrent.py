@@ -14,26 +14,30 @@ class Torrent(BaseModel):
 
         ALL = {NONE, DOWNLOADING, SEEDING, COMPLETED}
 
+    download_provider_id = CharField(null=True)
+    fetch_provider_id = CharField(null=True)
     episode = ForeignKeyField(Episode, related_name='torrents', on_delete='CASCADE')
-    uid = CharField(null=True)
     state = IntegerField(default=State.NONE, choices=State.ALL)
 
+    # Whether this torrent was post-processed
     processed = BooleanField(default=False)
 
+    # Torrent metadata (not updated from fetch provider)
     title = CharField()
-    provider_id = CharField()
     size = CharField()
     seeders = IntegerField()
     leechers = IntegerField()
-
     raw = BlobField()
+
+    # Date this torrent finished downloading (used for cleanup)
+    done_date = DateTimeField(null=True)
 
     @classmethod
     def from_result(cls, episode, torrent, raw):
         return cls.create(
             episode=episode,
             title=torrent.title,
-            provider_id=torrent.id,
+            fetch_provider_id=torrent.id,
             size=torrent.size,
             seeders=torrent.seeders,
             leechers=torrent.leechers,
