@@ -70,9 +70,10 @@ def update_series_media(series):
             # TODO: check if this matches our format/resolution first>
             # If we haven't marked this episode as downloaded yet, we do that now
             if episode.state != int(Episode.State.DOWNLOADED):
-                # bard.providers.notify.episode_downloaded(episode)
                 episode.state = int(Episode.State.DOWNLOADED)
                 episode.save()
+
+                bard.providers.notify.episode_downloaded(episode)
 
             try:
                 for media in medias:
