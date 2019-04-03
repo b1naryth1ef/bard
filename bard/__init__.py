@@ -1,54 +1,52 @@
 from flask import Flask, request, g
-from holster.flask_ext import ViewFinder
-from holster.util import SimpleObject
 
 from .constants import ACL_GROUPS
 from .models import init_db
 from .config import BardConfig
+from .providers import providers
 
 
-bard = SimpleObject()
-bard.app = Flask(__name__)
-bard.config = BardConfig.load()
-bard.app.secret_key = bard.config['web']['secret_key']
-bard.providers = SimpleObject()
+app = Flask(__name__)
+config = BardConfig.load()
+app.secret_key = config['web']['secret_key']
 
-for view in ViewFinder.get_views():
-    bard.app.register_blueprint(view)
+
+def register_blueprints():
+    from .views.dashboard import dashboard
+    from .views.episodes import episodes
+    from .views.media import media
+    from .views.series import series
+    from .views.torrents import torrents
+
+    app.register_blueprint(dashboard)
+    app.register_blueprint(episodes)
+    app.register_blueprint(media)
+    app.register_blueprint(series)
+    app.register_blueprint(torrents)
 
 
 def before_first_request():
-    from .providers import load_provider
-    from .providers.info import INFO_PROVIDERS
-    from .providers.download import DOWNLOAD_PROVIDERS
-    from .providers.fetch import FETCH_PROVIDERS
-    from .providers.notify import NOTIFY_PROVIDERS
-    from .providers.library import LIBRARY_PROVIDERS
-
-    # Load providers
-
-    bard.providers.info = load_provider(bard, INFO_PROVIDERS, bard.config['providers']['info'])
-    bard.providers.download = load_provider(bard, DOWNLOAD_PROVIDERS, bard.config['providers']['download'])
-    bard.providers.fetch = load_provider(bard, FETCH_PROVIDERS, bard.config['providers']['fetch'])
-    bard.providers.notify = load_provider(bard, NOTIFY_PROVIDERS, bard.config['providers']['notify'])
-    bard.providers.library = load_provider(bard, LIBRARY_PROVIDERS, bard.config['providers']['library'])
+    providers.load_from_config(config)
 
     # Initialize DB
-    init_db(bard)
+    init_db(config)
+
+    # Register all our blueprints
+    register_blueprints()
 
 
 def before_request():
     g.user = None
     g.acl = 'admin'
 
-    user_header = bard.config['web'].get('user_header')
+    user_header = config['web'].get('user_header')
     if user_header:
         g.user = request.headers.get(user_header)
-        g.acl = bard.config['acls'].get(g.user, 'guest')
+        g.acl = config['acls'].get(g.user, 'guest')
 
     if g.acl not in ACL_GROUPS:
         g.acl = 'guest'
 
 
-bard.app.before_first_request(before_first_request)
-bard.app.before_request(before_request)
+app.before_first_request(before_first_request)
+app.before_request(before_request)

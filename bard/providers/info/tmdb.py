@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 class TMDBInfoProvider(object):
-    def __init__(self, bard, config):
+    def __init__(self, config):
         self.api_key = config['api_key']
         self.session = requests.Session()
         self.session.params['api_key'] = self.api_key

@@ -5,7 +5,7 @@ from collections import defaultdict
 
 
 class PlexLibraryProvider(object):
-    def __init__(self, bard, config):
+    def __init__(self, config):
         self.config = config
         self.plex = PlexServer(config['url'], config['token'])
 

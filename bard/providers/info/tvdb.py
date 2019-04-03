@@ -6,7 +6,7 @@ from pytvdbapi import api
 
 
 class TVDBInfoProvider(object):
-    def __init__(self, bard, config):
+    def __init__(self, config):
         self.client = api.TVDB(config.get('api_key', 'B43FF87DE395DF56'))
         self.language = config.get('language', 'en')
 

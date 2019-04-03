@@ -153,8 +153,7 @@ class TransmissionFetchProvider(object):
         'secondsDownloading'
     ]
 
-    def __init__(self, bard, opts):
-        self.bard = bard
+    def __init__(self, opts):
         self.start_paused = opts.pop('start_paused', False)
         self.peer_limit = opts.pop('peer_limit', 500)
         self.client = TransmissionClient(

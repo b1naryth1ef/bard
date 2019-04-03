@@ -1,5 +1,5 @@
 from .iptorrents import IPTorrentsDownloadProvider
 
-DOWNLOAD_PROVIDERS = {
+PROVIDERS = {
     'iptorrents': IPTorrentsDownloadProvider,
 }

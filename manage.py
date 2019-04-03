@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 from gevent import monkey
 monkey.patch_all()  # noqa: E402
 
 from werkzeug.serving import run_with_reloader
 from gevent import pywsgi
-from bard import bard, before_first_request
+from bard import app, config, before_first_request
 
 import logging
 import click
@@ -25,11 +27,11 @@ def cli():
 @click.option('--reloader/--no-reloader', '-r', default=False)
 def serve(reloader):
     def run():
-        print 'Running webserver on {}:{}'.format(
-            bard.config['web']['host'],
-            bard.config['web']['port'],
-        )
-        pywsgi.WSGIServer((bard.config['web']['host'], bard.config['web']['port']), bard.app).serve_forever()
+        print('Running webserver on {}:{}'.format(
+            config['web']['host'],
+            config['web']['port'],
+        ))
+        pywsgi.WSGIServer((config['web']['host'], config['web']['port']), app).serve_forever()
 
     if reloader:
         run_with_reloader(run)
@@ -44,7 +46,7 @@ def shell():
     try:
         from IPython.terminal.interactiveshell import TerminalInteractiveShell
         console = TerminalInteractiveShell(user_ns=namespace)
-        print 'Starting iPython Shell'
+        print('Starting iPython Shell')
     except ImportError:
         import code
         import rlcompleter
@@ -64,42 +66,27 @@ def shell():
             pass
 
         console = code.InteractiveConsole(namespace)
-        print 'Starting Poverty Shell (install IPython to use improved shell)'
+        print('Starting Poverty Shell (install IPython to use improved shell)')
 
-    with bard.app.app_context():
+    with app.app_context():
         console.interact()
 
 
 @cli.command()
 def resetdb():
     from bard.models import REGISTERED_MODELS, init_db
-    import bard.models.episode
-    import bard.models.season
-    import bard.models.series
-    import bard.models.torrent
-    import bard.models.user
 
-    from bard import bard
-    init_db(bard)
+    init_db(config)
 
-    print REGISTERED_MODELS
     for model in REGISTERED_MODELS:
         model.drop_table(True, False)
         model.create_table(True)
 
 
-@cli.command('run-task')
-@click.argument('task-name')
-@click.argument('args', nargs=-1)
-def run_task(task_name, args):
-    import bard.tasks  # noqa: F401
-    from holster.tasks import _TASKS
-    _TASKS.get(task_name)(*args)
-
-
 @cli.command('scheduler')
 def run_scheduler():
     from bard.cron import scheduler
+    print('Running scheduler')
     scheduler.run()
 
 

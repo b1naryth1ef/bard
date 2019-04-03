@@ -1,5 +1,5 @@
 from .discord import DiscordNotifyProvider
 
-NOTIFY_PROVIDERS = {
+PROVIDERS = {
     'discord': DiscordNotifyProvider,
 }

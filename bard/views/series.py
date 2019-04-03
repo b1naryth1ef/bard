@@ -1,6 +1,7 @@
 from httplib import BAD_REQUEST
 from peewee import IntegrityError
 from flask import Blueprint, request, redirect, render_template, flash
+from bard.providers import providers
 from bard.models.series import Series
 from bard.util.deco import model_getter, acl
 
@@ -12,13 +13,11 @@ series_getter = model_getter(Series)
 @series.route('/series/search')
 @acl('guest')
 def series_search():
-    from bard import bard
-
     query = request.values.get('query')
     if not query:
         return 'Invalid Query', BAD_REQUEST
 
-    search_results = bard.providers.info.search_series(query)
+    search_results = providers.info.search_series(query)
     return render_template('series/search_results.html', query=query, results=search_results)
 
 
@@ -40,11 +39,10 @@ def series_go():
 @series.route('/series/add')
 @acl('user')
 def series_add():
-    from bard import bard
     from bard.tasks.series import update_series
 
     provider_id = request.values.get('provider_id')
-    series = bard.providers.info.get_series(provider_id)
+    series = providers.info.get_series(provider_id)
     if series:
         try:
             series.save()

@@ -1,7 +1,7 @@
 from .tvdb import TVDBInfoProvider
 from .tmdb import TMDBInfoProvider
 
-INFO_PROVIDERS = {
+PROVIDERS = {
     'tvdb': TVDBInfoProvider,
     'tmdb': TMDBInfoProvider,
 }

@@ -1,5 +1,5 @@
 from .plex import PlexLibraryProvider
 
-LIBRARY_PROVIDERS = {
+PROVIDERS = {
     'plex': PlexLibraryProvider,
 }

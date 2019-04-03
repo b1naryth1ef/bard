@@ -1,5 +1,6 @@
 from flask import Blueprint, request, redirect, render_template, flash
 from httplib import NOT_MODIFIED
+from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
@@ -56,8 +57,7 @@ def episodes_index(episode):
 @episode_getter
 @acl('user')
 def episodes_torrent_list(episode):
-    from bard import bard
-    torrents = bard.providers.download.search(episode)
+    torrents = providers.download.search(episode)
     return render_template('episode/torrents.html', episode=episode, torrents=torrents)
 
 
@@ -65,9 +65,8 @@ def episodes_torrent_list(episode):
 @episode_getter
 @acl('admin')
 def episode_fetch(episode):
-    from bard import bard
     torrent_id = request.values.get('id')
-    metadata = bard.providers.download.get_torrent(torrent_id)
+    metadata = providers.download.get_torrent(torrent_id)
     if metadata:
         episode.fetch(metadata)
         flash('Ok, started a download of that torrent for this episode', category='success')

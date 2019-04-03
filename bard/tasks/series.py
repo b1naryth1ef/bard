@@ -1,7 +1,6 @@
 import logging
-from bard import bard
-from holster.tasks import task
 
+from bard.providers import providers
 from bard.util.info import select_best_series
 from bard.models.series import Series
 from bard.models.season import Season
@@ -9,13 +8,11 @@ from bard.models.season import Season
 log = logging.getLogger(__name__)
 
 
-@task()
 def update_all_series():
     for series in Series.select():
         update_series(series)
 
 
-@task()
 def update_series(series):
     """
     Attempts to update all metadata about a series (seasons, episodes, media, etc).
@@ -26,7 +23,7 @@ def update_series(series):
 
     # TODO: update series metadata here too?
 
-    seasons = bard.providers.info.get_seasons(series.provider_id)
+    seasons = providers.info.get_seasons(series.provider_id)
     for season in seasons:
         try:
             # If we have an existing season, just update that
@@ -46,10 +43,9 @@ def update_series(series):
     update_series_media(series)
 
 
-@task()
 def repair_provider_ids():
     for series in Series.select():
-        result = select_best_series(bard, series.name)
+        result = select_best_series(providers.info, series.name)
         if not result:
             log.warning('Failed to repair provider ID for series %s (%s)', series.name, series.id)
             continue

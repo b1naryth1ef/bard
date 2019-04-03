@@ -1,6 +1,5 @@
 
 
 class BaseNotifyProvider(object):
-    def __init__(self, bard, opts):
-        self.bard = bard
+    def __init__(self, opts):
         self.opts = opts

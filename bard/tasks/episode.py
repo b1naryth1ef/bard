@@ -1,10 +1,9 @@
-import os
 import logging
 
 from datetime import datetime
-from holster.tasks import task
 
-from bard import bard
+from bard import config
+from bard.providers import providers
 from bard.constants import QUALITIES
 from bard.models.episode import Episode
 from bard.models.torrent import Torrent
@@ -14,7 +13,7 @@ log = logging.getLogger(__name__)
 
 def find_torrent_for_episode(episode):
     log.debug('Searching for episode `%s`', episode)
-    results = bard.providers.download.search(episode)
+    results = providers.download.search(episode)
 
     if not len(results):
         log.debug('Failed to find any torrents for episode `%s`', episode)
@@ -34,7 +33,7 @@ def find_torrent_for_episode(episode):
     # Store the results by seeders
     results = sorted(results, key=lambda i: i.seeders, reverse=True)
 
-    desired_quality = episode.quality or bard.config.get('default_quality')
+    desired_quality = episode.quality or config.get('default_quality')
 
     # If no quality preference is selected, return the highest seeder count
     if desired_quality is None:
@@ -51,7 +50,6 @@ def find_torrent_for_episode(episode):
     return results[0]
 
 
-@task()
 def find_episodes():
     episodes = Episode.select().where(
         (Episode.state == Episode.State.WANTED) &
@@ -75,17 +73,3 @@ def find_episodes():
         episode.fetch(torrent)
 
     return count
-
-
-@task()
-def post_process_episode(episode_id):
-    log.info('Post-processing E%s', episode_id)
-    episode = Episode.get(id=episode_id)
-
-    # Grab the torrent
-    torrent = list(episode.torrents)[-1]
-
-    for path in torrent.get_files():
-        path = os.path.join(bard.config.directories['input'], path)
-        print path
-        print os.path.exists(path)

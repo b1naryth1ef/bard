@@ -1,4 +1,5 @@
 from flask import Blueprint, request, redirect, flash
+from bard.providers import providers
 from bard.models.torrent import Torrent
 from bard.util.deco import model_getter, acl
 
@@ -11,9 +12,7 @@ torrent_getter = model_getter(Torrent)
 @torrent_getter
 @acl('admin')
 def torrents_index(torrent):
-    from bard import bard
-
-    bard.providers.fetch.remove(torrent)
+    providers.fetch.remove(torrent)
     torrent.delete_instance()
 
     flash('Deleted Torrent', category='success')
@@ -24,9 +23,8 @@ def torrents_index(torrent):
 @torrent_getter
 @acl('admin')
 def torrents_process(torrent):
-    from bard import bard
     from bard.tasks.torrent import process_torrent
-    info = next(bard.providers.fetch.get_torrent_info([torrent]), None)
+    info = next(providers.fetch.get_torrent_info([torrent]), None)
     process_torrent(torrent, files=info.files)
     flash('Processed torrent', category='success')
     return redirect(request.referrer)

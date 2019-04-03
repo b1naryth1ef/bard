@@ -25,7 +25,7 @@ class BaseModel(Model):
             return None
 
 
-def init_db(app):
+def init_db(config):
     # TODO: dynamic
     import bard.models.episode
     import bard.models.season
@@ -33,12 +33,12 @@ def init_db(app):
     import bard.models.torrent
     import bard.models.media
 
-    obj = urlparse.urlparse(app.config['database'])
+    obj = urlparse.urlparse(config['database'])
 
     if obj.scheme == "sqlite":
         database.initialize(SqliteDatabase(obj.netloc, pragmas={'foreign_keys': 1}, check_same_thread=False))
     else:
-        raise Exception('Unsupported database adapter `{}`, for DB url `{}`'.format(obj.scheme, app.config['database']))
+        raise Exception('Unsupported database adapter `{}`, for DB url `{}`'.format(obj.scheme, config['database']))
 
     for model in REGISTERED_MODELS:
         model.create_table(True)

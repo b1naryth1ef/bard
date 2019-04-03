@@ -3,6 +3,7 @@ from peewee import *
 from bard.constants import QUALITIES
 from bard.models import BaseModel
 from bard.models.season import Season
+from bard.providers import providers
 
 
 @BaseModel.register
@@ -49,13 +50,12 @@ class Episode(BaseModel):
         return 'S{}E{}'.format(self.season.number, self.number)
 
     def fetch(self, torrent_metadata):
-        from bard import bard
         from bard.models.torrent import Torrent
 
-        raw = bard.providers.download.get_torrent_contents(torrent_metadata.id)
+        raw = providers.download.get_torrent_contents(torrent_metadata.id)
 
         torrent = Torrent.from_result(self, torrent_metadata, raw)
-        torrent.fetch_provider_id = bard.providers.fetch.download(torrent)
+        torrent.fetch_provider_id = providers.fetch.download(torrent)
         torrent.state = torrent.State.DOWNLOADING
         torrent.save()
 

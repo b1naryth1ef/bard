@@ -2,15 +2,14 @@ import os
 import shutil
 import rarfile
 import logging
-from holster.tasks import task
 
-from bard import bard
+from bard import config
+from bard.providers import providers
 from bard.models.torrent import Torrent
 
 log = logging.getLogger(__name__)
 
 
-@task()
 def update_torrents():
     torrents = {
         i.fetch_provider_id: i for i in Torrent.select().where(
@@ -20,7 +19,7 @@ def update_torrents():
 
     log.info('Updating %s torrents that are DOWNLOADING', len(torrents))
 
-    torrent_infos = list(bard.providers.fetch.get_torrent_info(torrents.values()))
+    torrent_infos = list(providers.fetch.get_torrent_info(torrents.values()))
     for torrent_info in torrent_infos:
         torrent = torrents.pop(torrent_info.id)
         torrent.state = torrent_info.state
@@ -39,7 +38,7 @@ def _get_result_path(torrent, ext='mkv'):
     Returns the resulting path for a givent torrent file
     """
     return os.path.join(
-        bard.config['directories']['output'],
+        config['directories']['output'],
         torrent.episode.season.series.storage_name,
         '{}.{}.{}'.format(
             torrent.episode.season.series.storage_name,
@@ -75,7 +74,6 @@ def _store_torrent_media(torrent, source_path, keep=False):
     os.chmod(final_destination_path, 0777)
 
 
-@task()
 def process_torrent(torrent, files):
     log.debug('Processing torrent %s', torrent.id)
 
@@ -93,7 +91,7 @@ def process_torrent(torrent, files):
         video_files = [i for i in files if i.endswith('mkv')]
         if len(video_files) == 1:
             log.debug('Found video file in torrent %s, moving and reverse symlinking', torrent.id)
-            source_path = os.path.join(bard.config['directories']['input'], video_files[0])
+            source_path = os.path.join(config['directories']['input'], video_files[0])
             _store_torrent_media(torrent, source_path, keep=True)
             return
         elif len(video_files) > 1:
@@ -104,9 +102,8 @@ def process_torrent(torrent, files):
         torrent.save()
 
 
-@task()
 def unpack_torrent(torrent, rar_file):
-    full_path = os.path.join(bard.config['directories']['input'], rar_file)
+    full_path = os.path.join(config['directories']['input'], rar_file)
     if not os.path.exists(full_path):
         log.error('Couldn\'t find correct path while unpacking torrent; %s', full_path)
         return
@@ -118,6 +115,6 @@ def unpack_torrent(torrent, rar_file):
         log.error('Failed to find video file to unpack from rar %s (%s)', torrent.id, rf.namelist())
         return
 
-    temporary_dir = bard.config['directories']['temporary']
+    temporary_dir = config['directories']['temporary']
     rf.extract(video_files[0], temporary_dir)
     _store_torrent_media(torrent, os.path.join(temporary_dir, video_files[0]))

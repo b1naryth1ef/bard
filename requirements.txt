@@ -1,7 +1,6 @@
 click==7.0
 Flask==1.0.2
 gevent==1.4.0
-holster==2.0.0
 lxml==3.7.2
 peewee==3.8.2
 pyquery==1.4.0

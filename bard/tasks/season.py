@@ -1,16 +1,14 @@
 import logging
-from bard import bard
-from holster.tasks import task
+from bard.providers import providers
 from bard.models.episode import Episode
 
 log = logging.getLogger(__name__)
 
 
-@task()
 def update_season(season):
     log.info('Performing an update on season %s, %s (%s)', season.number, season.series.name, season.series.id)
 
-    for episode in bard.providers.info.get_episodes(season.series.provider_id, season.number):
+    for episode in providers.info.get_episodes(season.series.provider_id, season.number):
         try:
             existing_episode = Episode.select().where(
                 (Episode.season == season) &

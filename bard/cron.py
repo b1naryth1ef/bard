@@ -13,11 +13,11 @@ log = logging.getLogger(__name__)
 
 def register_repeating_task(seconds, func):
     def wrap():
-        log.info('Running task %s', func.name)
+        log.info('Running task %s', func.__name__)
         try:
             return func()
         except Exception:
-            log.exception('Error in repeating task %s: ', func.name)
+            log.exception('Error in repeating task %s: ', func.__name__)
         finally:
             scheduler.enter(seconds, 1, wrap, ())
     scheduler.enter(seconds, 1, wrap, ())

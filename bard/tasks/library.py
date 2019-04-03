@@ -1,7 +1,7 @@
 import logging
 from peewee import IntegrityError, JOIN
-from bard import bard
-from holster.tasks import task
+
+from bard.providers import providers
 from bard.util.info import select_best_series
 from bard.models.series import Series
 from bard.models.season import Season
@@ -12,7 +12,6 @@ from bard.models.media import Media
 log = logging.getLogger(__name__)
 
 
-@task()
 def scan_library():
     log.info('Performing a full library scan')
 
@@ -22,15 +21,14 @@ def scan_library():
     return count
 
 
-@task()
 def import_library():
     from bard.tasks.series import update_series
 
-    for series in bard.providers.library.get_all_series():
+    for series in providers.library.get_all_series():
         if Series.select().where(Series.name == series).exists():
             continue
 
-        result = select_best_series(bard, series.name)
+        result = select_best_series(providers.info, series.name)
         if result:
             log.debug('Found result for %s, adding to library', series.name)
             result.save()
@@ -39,20 +37,19 @@ def import_library():
             log.debug('No result found for %s', series.name)
 
 
-@task()
 def update_series_media(series):
     count = 0
 
-    library_series = bard.providers.library.find_series_info(series.name)
+    library_series = providers.library.find_series_info(series.name)
     if not library_series:
-        results = bard.providers.library.search_series(series.name)
+        results = providers.library.search_series(series.name)
         if len(results) == 1:
             library_series = {'title': results[0].title}
         else:
             log.warning('Failed to find library series for %s', series.name)
             return 0
 
-    library_media = bard.providers.library.find_series_media(library_series['title'])
+    library_media = providers.library.find_series_media(library_series['title'])
 
     episodes = Episode.select().join(Season).where(
         (Season.series == series)
@@ -73,7 +70,7 @@ def update_series_media(series):
                 episode.state = int(Episode.State.DOWNLOADED)
                 episode.save()
 
-                bard.providers.notify.episode_downloaded(episode)
+                providers.notify.episode_downloaded(episode)
 
             try:
                 for media in medias:
@@ -86,7 +83,6 @@ def update_series_media(series):
     return count
 
 
-@task()
 def update_missing_items():
     # This task is primarly responsible for pulling in `media` items from our
     #  external library after they have been downloaded and processed by bard.

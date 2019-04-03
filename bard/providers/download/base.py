@@ -12,8 +12,7 @@ class TorrentMetadata(object):
 
 
 class BaseDownloadProvider(object):
-    def __init__(self, bard, opts):
-        self.bard = bard
+    def __init__(self, opts):
         self.__dict__.update(opts)
         self.log = logging.getLogger(self.__class__.__name__)
 

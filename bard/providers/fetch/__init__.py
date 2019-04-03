@@ -2,7 +2,7 @@ from collections import namedtuple
 from .transmission import TransmissionFetchProvider
 
 
-FETCH_PROVIDERS = {
+PROVIDERS = {
     'transmission': TransmissionFetchProvider,
 }
 
