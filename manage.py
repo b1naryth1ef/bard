@@ -13,7 +13,9 @@ import click
 @click.group()
 def cli():
     before_first_request()
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('bard').setLevel(logging.DEBUG)
+    logging.getLogger('urllib3').setLevel(logging.INFO)
     logging.getLogger('peewee').setLevel(logging.INFO)
     logging.getLogger('requests').setLevel(logging.INFO)
     logging.getLogger('pytvdbapi').setLevel(logging.INFO)
@@ -93,6 +95,12 @@ def run_task(task_name, args):
     import bard.tasks  # noqa: F401
     from holster.tasks import _TASKS
     _TASKS.get(task_name)(*args)
+
+
+@cli.command('scheduler')
+def run_scheduler():
+    from bard.cron import scheduler
+    scheduler.run()
 
 
 if __name__ == '__main__':
