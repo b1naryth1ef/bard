@@ -1,11 +1,13 @@
 import logging
-from peewee import IntegrityError
+from peewee import IntegrityError, JOIN
 from bard import bard
 from holster.tasks import task
 from bard.util.info import select_best_series
 from bard.models.series import Series
 from bard.models.season import Season
 from bard.models.episode import Episode
+from bard.models.torrent import Torrent
+from bard.models.media import Media
 
 log = logging.getLogger(__name__)
 
@@ -81,3 +83,26 @@ def update_series_media(series):
                 continue
 
     return count
+
+
+@task()
+def update_missing_items():
+    # This task is primarly responsible for pulling in `media` items from our
+    #  external library after they have been downloaded and processed by bard.
+    #  There is some period of lag time between when bard fully extracts a torrent
+    #  and when the library detects and imports the extracted media. While bard
+    #  performs regular scans against the remote library to pickup any missing
+    #  media, these are slow and only run occasionally. To reduce the latency
+    #  of bard detecting media, we look for all series that have an episode with
+    #  a torrent that has been processed, but do not have a corresponding media
+    #  item yet.
+    dirty_series = Series.select(Series) \
+        .join(Season).join(Episode).switch(Episode) \
+        .join(Media, JOIN.LEFT_OUTER).switch(Episode) \
+        .join(Torrent) \
+        .where(
+            (Torrent.processed >> True) & (Media.id >> None)
+        ).group_by(Series)
+
+    for series in dirty_series:
+        update_series_media(series)
