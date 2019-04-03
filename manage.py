@@ -4,12 +4,14 @@ from __future__ import print_function
 from gevent import monkey
 monkey.patch_all()  # noqa: E402
 
+import gevent
+import logging
+import click
+
 from werkzeug.serving import run_with_reloader
 from gevent import pywsgi
 from bard import app, config, before_first_request
-
-import logging
-import click
+from bard.cron import scheduler as cron_scheduler
 
 
 @click.group()
@@ -25,13 +27,19 @@ def cli():
 
 @cli.command()
 @click.option('--reloader/--no-reloader', '-r', default=False)
-def serve(reloader):
+@click.option('--scheduler/--no-scheduler', '-s', default=False)
+def serve(reloader, scheduler):
     def run():
         print('Running webserver on {}:{}'.format(
             config['web']['host'],
             config['web']['port'],
         ))
         pywsgi.WSGIServer((config['web']['host'], config['web']['port']), app).serve_forever()
+
+    if scheduler:
+        # TODO: support reloading scheduler too
+        assert not reloader
+        gevent.spawn(cron_scheduler.run)
 
     if reloader:
         run_with_reloader(run)
@@ -85,9 +93,8 @@ def resetdb():
 
 @cli.command('scheduler')
 def run_scheduler():
-    from bard.cron import scheduler
     print('Running scheduler')
-    scheduler.run()
+    cron_scheduler.run()
 
 
 if __name__ == '__main__':

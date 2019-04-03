@@ -1,9 +1,13 @@
 from flask import Blueprint, request, redirect, render_template, flash
-from httplib import NOT_MODIFIED
 from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
+
+try:
+    from httplib import NOT_MODIFIED
+except ImportError:
+    from http.client import NOT_MODIFIED
 
 
 episodes = Blueprint('episodes', __name__)

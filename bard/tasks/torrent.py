@@ -71,7 +71,7 @@ def _store_torrent_media(torrent, source_path, keep=False):
         )
         raise
 
-    os.chmod(final_destination_path, 0777)
+    os.chmod(final_destination_path, 0o777)
 
 
 def process_torrent(torrent, files):

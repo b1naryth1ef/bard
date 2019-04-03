@@ -1,9 +1,13 @@
-from httplib import BAD_REQUEST
 from peewee import IntegrityError
 from flask import Blueprint, request, redirect, render_template, flash
 from bard.providers import providers
 from bard.models.series import Series
 from bard.util.deco import model_getter, acl
+
+try:
+    from httplib import BAD_REQUEST
+except ImportError:
+    from http.client import BAD_REQUEST
 
 
 series = Blueprint('series', __name__)
