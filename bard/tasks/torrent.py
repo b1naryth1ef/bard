@@ -2,12 +2,21 @@ import os
 import shutil
 import rarfile
 import logging
+import mimetypes
 
 from bard import config
 from bard.providers import providers
 from bard.models.torrent import Torrent
 
 log = logging.getLogger(__name__)
+
+
+def _is_video_file(filename):
+    mime, _ = mimetypes.guess_type(filename)
+    if mime and mime.startswith('video/'):
+        return True
+
+    return False
 
 
 def update_torrents():
@@ -33,14 +42,14 @@ def update_torrents():
     return len(torrent_infos)
 
 
-def _get_result_path(torrent, ext='mkv'):
+def _get_result_path(torrent, ext='.mkv'):
     """
     Returns the resulting path for a givent torrent file
     """
     return os.path.join(
         config['directories']['output'],
         torrent.episode.season.series.storage_name,
-        '{}.{}.{}'.format(
+        '{}.{}{}'.format(
             torrent.episode.season.series.storage_name,
             torrent.episode.season_episode_id,
             ext
@@ -49,7 +58,12 @@ def _get_result_path(torrent, ext='mkv'):
 
 
 def _store_torrent_media(torrent, source_path, keep=False):
-    final_destination_path = _get_result_path(torrent)
+    _, ext = os.path.splitext(source_path)
+    if not ext:
+        log.error('Unknown source_path extension: %s', source_path)
+        return
+
+    final_destination_path = _get_result_path(torrent, ext)
     final_destination_dir = os.path.dirname(final_destination_path)
 
     # If the path doesn't exist, attempt to make it
@@ -88,7 +102,7 @@ def process_torrent(torrent, files):
             log.error('Found multiple rar files in torrent %s (%s)', torrent.id, rar_files)
             return
 
-        video_files = [i for i in files if i.endswith('mkv')]
+        video_files = [i for i in files if _is_video_file(i)]
         if len(video_files) == 1:
             log.debug('Found video file in torrent %s, moving and reverse symlinking', torrent.id)
             source_path = os.path.join(config['directories']['input'], video_files[0])
@@ -110,7 +124,7 @@ def unpack_torrent(torrent, rar_file):
 
     rf = rarfile.RarFile(full_path)
 
-    video_files = [i for i in rf.namelist() if i.endswith('.mkv')]
+    video_files = [i for i in rf.namelist() if _is_video_file(i)]
     if len(video_files) != 1:
         log.error('Failed to find video file to unpack from rar %s (%s)', torrent.id, rf.namelist())
         return
