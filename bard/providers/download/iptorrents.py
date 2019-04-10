@@ -31,7 +31,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
 
         # TODO: validation for common errors
 
-    def search(self, episode):
+    def search(self, episode, exclude=None):
         queries = episode.generate_search_queries()
 
         if not len(queries):
@@ -46,7 +46,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
 
             r.raise_for_status()
 
-            torrents = list(self._parse_search_results(r.content))
+            torrents = list(self._parse_search_results(r.content, exclude=exclude))
             if not len(torrents):
                 continue
 
@@ -82,7 +82,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
             leechers
         )
 
-    def _parse_search_results(self, raw):
+    def _parse_search_results(self, raw, exclude=None):
         q = PyQuery(raw)
 
         # Grab all table rows in the torrents section
@@ -102,8 +102,10 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         for torrent in torrents:
             parts = list(torrent.iterchildren())
 
-            # First grab the title
             id = re.findall(ID_RE, next(parts[1].iterchildren()).attrib['href'])[0]
+            if exclude and id in exclude:
+                continue
+
             title = list(parts[1].iterchildren())[0].text_content()
 
             # TODO: convert

@@ -13,7 +13,10 @@ log = logging.getLogger(__name__)
 
 def find_torrent_for_episode(episode):
     log.debug('Searching for episode `%s`', episode)
-    results = providers.download.search(episode)
+    results = providers.download.search(
+        episode,
+        exclude=[i.download_provider_id for i in episode.torrents],
+    )
 
     if not len(results):
         log.debug('Failed to find any torrents for episode `%s`', episode)
