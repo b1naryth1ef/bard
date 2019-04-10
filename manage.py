@@ -97,5 +97,19 @@ def run_scheduler():
     cron_scheduler.run()
 
 
+@cli.command('update-media-sizes')
+def update_media_sizes():
+    """
+    Updates the on-disk size of all media items.
+    """
+    from bard.models.media import Media
+    from bard.tasks.library import get_path_size_on_disk
+
+    for media in Media.select():
+        media.size = get_path_size_on_disk(media.path)
+        if media.size:
+            media.save()
+
+
 if __name__ == '__main__':
     cli(obj={})

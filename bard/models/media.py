@@ -18,3 +18,4 @@ class Media(BaseModel):
     bitrate = IntegerField()
 
     path = CharField(null=True)
+    size = IntegerField(null=True)

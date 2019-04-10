@@ -1,3 +1,4 @@
+import os
 import logging
 from peewee import IntegrityError, JOIN
 
@@ -10,6 +11,13 @@ from bard.models.torrent import Torrent
 from bard.models.media import Media
 
 log = logging.getLogger(__name__)
+
+
+def get_path_size_on_disk(path):
+    try:
+        return os.path.getsize(path)
+    except OSError:
+        return None
 
 
 def scan_library():
@@ -76,6 +84,7 @@ def update_series_media(series):
             try:
                 for media in medias:
                     media.episode = episode
+                    media.size = get_path_size_on_disk(media.path)
                     media.save()
                     count += 1
             except IntegrityError:
