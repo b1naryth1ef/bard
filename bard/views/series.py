@@ -1,7 +1,11 @@
+from datetime import datetime
 from peewee import IntegrityError
 from flask import Blueprint, request, redirect, render_template, flash
+
+from bard.models import database
 from bard.providers import providers
 from bard.models.series import Series
+from bard.models.episode import Episode
 from bard.util.deco import model_getter, acl
 
 try:
@@ -81,12 +85,31 @@ def series_index(series):
 @series_getter
 @acl('user')
 def series_sub(series):
-    if not series.subscribed:
-        series.subscribed = True
-        series.save()
-        flash('Subscribed to {}'.format(series.name), category='success')
-    else:
+    if series.subscribed:
         flash('Already subscribed to {}'.format(series.name), category='error')
+    else:
+        # When subscribing to a series we need to look for all unaired episodes
+        #  and mark them as wanted. We don't mark previously aired episodes as
+        #  wanted because its less clear if the user wants that (whereas them saying
+        #  they want all future episodes of the show, and us marking all future
+        #  episodes as wanted is understandable)
+        with database.atomic():
+            episodes_marked = Episode.update(state=Episode.State.WANTED).where(
+                (Episode.state == Episode.State.NONE) &
+                (
+                    (~(Episode.airdate >> None)) &
+                    (Episode.airdate > datetime.utcnow())
+                )
+            ).execute()
+
+            series.subscribed = True
+            series.save()
+
+        flash(
+            'Subscribed to {} and marked {} future episodes as wanted'.format(series.name, episodes_marked),
+            category='success'
+        )
+
     return redirect(request.referrer)
 
 
