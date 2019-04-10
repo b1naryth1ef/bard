@@ -3,6 +3,7 @@ from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
+from bard.tasks.episode import find_torrent_for_episode
 
 try:
     from httplib import NOT_MODIFIED
@@ -23,6 +24,17 @@ def episodes_request(episode):
 
     episode.state = Episode.State.WANTED
     episode.save()
+
+    if episode.aired:
+        torrent = find_torrent_for_episode(episode)
+        if torrent:
+            episode.fetch(torrent)
+            flash('Started download for {}'.format(episode.to_string()), category='success')
+        else:
+            flash('Failed to find torrent for {} (will retry later)'.format(episode.to_string()), category='error')
+    else:
+        flash('Marked {} for download on airdate ({})'.format(episode.to_string(), episode.airdate), category='success')
+
     return magic_redirect()
 
 
