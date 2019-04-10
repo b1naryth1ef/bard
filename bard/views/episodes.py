@@ -59,6 +59,14 @@ def episodes_refetch(episode):
 
     episode.state = Episode.State.WANTED
     episode.save()
+
+    torrent = find_torrent_for_episode(episode)
+    if torrent:
+        episode.fetch(torrent)
+        flash('Started new download for {}'.format(episode.to_string()), category='success')
+    else:
+        flash('Failed to find new torrent for {} (will retry later)'.format(episode.to_string()), category='error')
+
     return magic_redirect()
 
 
