@@ -54,6 +54,7 @@ def update_series_media(series):
     episodes = Episode.select().join(Season).where(
         (Season.series == series)
     )
+    episodes_to_notify = []
     for episode in episodes:
         if int(episode.season.number) not in library_media:
             continue
@@ -70,7 +71,7 @@ def update_series_media(series):
                 episode.state = int(Episode.State.DOWNLOADED)
                 episode.save()
 
-                providers.notify.episode_downloaded(episode)
+                episodes_to_notify.append(episode)
 
             try:
                 for media in medias:
@@ -79,6 +80,11 @@ def update_series_media(series):
                     count += 1
             except IntegrityError:
                 continue
+
+    # Send the episodes we've downloaded to the notify provider. This is done in
+    #  bulk to allow our notify provider to special case bulk series loads without
+    #  spamming notifications.
+    providers.notify.episodes_downloaded(episodes_to_notify)
 
     return count
 
