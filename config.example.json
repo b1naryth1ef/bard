@@ -21,5 +21,14 @@
     "port": 7675
   },
   "default_quality": "1080p",
-  "acls": {}
+  "acls": {},
+  "info": {
+    "providers": [{"name": "tvdb"}, {"name": "tvmaze"}],
+    "search": "tvdb",
+    "rules": {
+      "series": {"*": "tvdb"},
+      "season": {"*": "tvdb"},
+      "episode": {"*": "tvdb", "airdate": "tvmaze"}
+    }
+  }
 }
