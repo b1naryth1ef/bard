@@ -8,8 +8,7 @@ log = logging.getLogger(__name__)
 def update_season(season):
     log.info('Performing an update on season %s, %s (%s)', season.number, season.series.name, season.series.id)
 
-    provider_id = season.series.get_provider_id(providers.info.name)
-    for episode_info in providers.info.get_episodes(provider_id, season.number):
+    for episode_info in providers.info.get_episodes(season.series, season.number):
         try:
             episode = Episode.get(season=season, number=episode_info.number)
             episode.update_from_metadata(episode_info)

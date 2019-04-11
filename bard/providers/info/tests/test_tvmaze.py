@@ -23,16 +23,16 @@ def test_search_series(tvmaze):
 
     assert len(results) == 1
     assert results[0].provider_ids['tvmaze'] == 4201
+    assert results[0].provider_ids['imdb'] == 'tt4508902'
     assert results[0].name == 'One-Punch Man'
-    assert results[0].imdb_id == 'tt4508902'
 
 
 def test_get_series(tvmaze):
     series = tvmaze.get_series(99)
 
     assert series.provider_ids['tvmaze'] == 99
+    assert series.provider_ids['imdb'] == 'tt0363307'
     assert series.name == "America's Next Top Model"
-    assert series.imdb_id == 'tt0363307'
 
 
 def test_get_seasons(tvmaze):

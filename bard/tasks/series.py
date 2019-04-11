@@ -20,14 +20,12 @@ def update_series(series):
     from bard.tasks.library import update_series_media
     log.info('Performing update on series %s (%s)', series.name, series.id)
 
-    provider_id = series.get_provider_id(providers.info.name)
-
     # Update the series metadata
-    series_info = providers.info.get_series(provider_id)
+    series_info = providers.info.get_series(series)
     series.update_from_metadata(series_info)
     series.save()
 
-    seasons = providers.info.get_seasons(provider_id)
+    seasons = providers.info.get_seasons(series)
     for season_info in seasons:
         season = None
         try:

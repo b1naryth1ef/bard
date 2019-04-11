@@ -22,7 +22,7 @@ class TVDBInfoProvider(object):
         obj.update()
 
         series = SeriesMetadata(
-            provider_ids={'tvdb': int(obj.id)},
+            provider_ids={'tvdb': int(obj.id), 'imdb': obj.IMDB_ID},
             status=STATUS_MAP.get(obj.Status, Series.AirStatus.UNKNOWN),
             name=obj.SeriesName,
             desc=obj.Overview,
@@ -30,7 +30,6 @@ class TVDBInfoProvider(object):
             content_rating=obj.ContentRating,
             banner=obj.banner,
             poster=obj.poster,
-            imdb_id=obj.IMDB_ID
         )
 
         return series
@@ -83,3 +82,6 @@ class TVDBInfoProvider(object):
         for episode in obj.seasons[int(season)].episodes.values():
             result.append(self.cast_episode(episode))
         return filter(bool, result)
+
+    def find_by_external(self, provider_ids):
+        return None

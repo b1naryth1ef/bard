@@ -38,9 +38,6 @@ class TVMazeInfoProvider(object):
     def _cast_series(obj):
         provider_ids = {'tvmaze': obj['id']}
         for service, service_name in SUPPORTED_EXTERNAL_SERIVCES.items():
-            if service == 'imdb':
-                continue
-
             if service_name in obj['externals']:
                 provider_ids[service] = obj['externals'][service_name]
 
@@ -50,11 +47,10 @@ class TVMazeInfoProvider(object):
             name=obj['name'],
             # TODO: clean out html tags
             desc=obj['summary'],
-            network=obj['network']['name'],
+            network=(obj['network'] or {}).get('name'),
             content_rating=None,
-            banner=obj['image']['original'],
+            banner=(obj['image'] or {}).get('original'),
             poster=None,
-            imdb_id=obj['externals']['imdb'],
         )
 
     @staticmethod

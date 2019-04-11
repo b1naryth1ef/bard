@@ -14,7 +14,6 @@ SeriesMetadata = namedtuple('SeriesMetadata', (
     'content_rating',
     'banner',
     'poster',
-    'imdb_id',
 ))
 
 
@@ -51,12 +50,12 @@ class Series(BaseModel):
     poster = CharField(null=True)
 
     # Metadata
-    imdb_id = CharField(null=True)
-
-    # Metadata
     added_date = DateTimeField(default=datetime.utcnow)
 
     provider_ids = JSONField()
+
+    def __repr__(self):
+        return u'<Series {} ({})>'.format(self.id, self.name)
 
     @property
     def clean_name(self):
@@ -79,7 +78,6 @@ class Series(BaseModel):
             content_rating=metadata.content_rating,
             banner=metadata.banner,
             poster=metadata.poster,
-            imdb_id=metadata.imdb_id,
         )
 
     def get_provider_id(self, provider_name):
@@ -99,4 +97,3 @@ class Series(BaseModel):
         self.content_rating = metadata.content_rating
         self.banner = metadata.banner
         self.poster = metadata.poster
-        self.imdb_id = metadata.imdb_id

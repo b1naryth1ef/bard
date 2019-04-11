@@ -32,10 +32,11 @@ class TMDBInfoProvider(object):
         return r.json()
 
     def cast_series(self, obj, with_network=True, with_external_ids=False):
-        imdb_id = None
+        provider_ids = {'tmdb': obj['id']}
         if with_external_ids:
             external_ids = self.get('tv/{}/external_ids'.format(obj['id']))
-            imdb_id = external_ids.get('imdb_id')
+            if 'imdb_id' in external_ids:
+                provider_ids['imdb'] = external_ids['imdb_id']
 
         network = None
         if with_network:
@@ -44,7 +45,7 @@ class TMDBInfoProvider(object):
                 network = details['networks'][0]['name']
 
         series = SeriesMetadata(
-            provider_ids={'tmdb': obj['id']},
+            provider_ids=provider_ids,
             status=Series.AirStatus.UNKNOWN,
             name=obj['name'],
             desc=obj['overview'],
@@ -52,7 +53,6 @@ class TMDBInfoProvider(object):
             content_rating=None,
             banner=IMAGE_URL_FORMAT.format(obj['backdrop_path']),
             poster=IMAGE_URL_FORMAT.format(obj['poster_path']),
-            imdb_id=imdb_id,
         )
 
         return series
@@ -75,6 +75,9 @@ class TMDBInfoProvider(object):
     def search_series(self, name, **kwargs):
         obj = self.get('search/tv', params={'query': name})
         return [self.cast_series(series, **kwargs) for series in obj['results']]
+
+    def find_by_external(self, provider_ids):
+        return None
 
     def get_series(self, id):
         return self.cast_series(self.get('tv/{}'.format(id)), with_external_ids=True)

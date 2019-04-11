@@ -2,7 +2,6 @@ import os
 import json
 import copy
 
-
 DEFAULT_CONFIG = {
     'database': 'sqlite://bard.db',
     'default_quality': '1080p',
@@ -23,7 +22,8 @@ DEFAULT_CONFIG = {
         'user_header': 'X-Forwarded-User',
         'secret_key': '',
     },
-    'acls': {}
+    'acls': {},
+    'info': {},
 }
 
 
