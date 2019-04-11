@@ -21,7 +21,7 @@ class Episode(BaseModel):
 
         ALL = {NONE, WANTED, FETCHED, DOWNLOADED}
 
-    season = ForeignKeyField(Season, related_name='episodes', on_delete='CASCADE')
+    season = ForeignKeyField(Season, backref='episodes', on_delete='CASCADE')
     state = IntegerField(default=State.NONE, choices=State.ALL)
 
     number = CharField()

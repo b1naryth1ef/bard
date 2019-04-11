@@ -10,7 +10,7 @@ class Season(BaseModel):
             (('series', 'number'), True),
         )
 
-    series = ForeignKeyField(Series, related_name='seasons', on_delete='CASCADE')
+    series = ForeignKeyField(Series, backref='seasons', on_delete='CASCADE')
 
     number = CharField()
     episode_count = IntegerField()

@@ -6,7 +6,7 @@ from bard.models.episode import Episode
 
 @BaseModel.register
 class Media(BaseModel):
-    episode = ForeignKeyField(Episode, related_name='medias', on_delete='CASCADE')
+    episode = ForeignKeyField(Episode, backref='medias', on_delete='CASCADE')
 
     library_id = CharField(unique=True)
 
