@@ -2,7 +2,17 @@ try:
     import urlparse
 except ImportError:
     from urllib import parse as urlparse
-from peewee import SqliteDatabase, Model, Proxy
+from peewee import Model, Proxy
+from playhouse.sqlite_ext import SqliteExtDatabase, JSONField
+
+
+__all__ = [
+    'JSONField',
+    'BaseModel',
+    'database',
+    'REGISTERED_MODELS',
+    'init_db',
+]
 
 
 REGISTERED_MODELS = []
@@ -39,7 +49,9 @@ def init_db(config):
     obj = urlparse.urlparse(config['database'])
 
     if obj.scheme == "sqlite":
-        database.initialize(SqliteDatabase(obj.netloc, pragmas={'foreign_keys': 1}, check_same_thread=False))
+        database.initialize(SqliteExtDatabase(obj.netloc, pragmas=[
+            ('foreign_keys', 1)
+        ], check_same_thread=False))
     else:
         raise Exception('Unsupported database adapter `{}`, for DB url `{}`'.format(obj.scheme, config['database']))
 

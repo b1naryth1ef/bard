@@ -1,11 +1,18 @@
-from bard.models.series import Series
-from bard.models.season import Season
-from bard.models.episode import Episode
+from bard.models.series import Series, SeriesMetadata
+from bard.models.season import SeasonMetadata
+from bard.models.episode import EpisodeMetadata
 
 from pytvdbapi import api
 
+STATUS_MAP = {
+    'Ended': Series.AirStatus.ENDED,
+    'Continuing': Series.AirStatus.CONTINUING,
+}
+
 
 class TVDBInfoProvider(object):
+    name = 'tvdb'
+
     def __init__(self, config):
         self.client = api.TVDB(config.get('api_key', 'B43FF87DE395DF56'))
         self.language = config.get('language', 'en')
@@ -14,36 +21,30 @@ class TVDBInfoProvider(object):
     def cast_series(obj):
         obj.update()
 
-        series = Series(
-            provider_id=int(obj.id),
+        series = SeriesMetadata(
+            provider_ids={'tvdb': int(obj.id)},
+            status=STATUS_MAP.get(obj.Status, Series.AirStatus.UNKNOWN),
             name=obj.SeriesName,
             desc=obj.Overview,
             network=obj.Network,
             content_rating=obj.ContentRating,
             banner=obj.banner,
             poster=obj.poster,
-            imdb_id=obj.IMDB_ID)
-
-        if obj.Status == 'Ended':
-            series.status = Series.AirStatus.ENDED
-        elif obj.Status == 'Continuing':
-            series.status = Series.AirStatus.CONTINUING
-        else:
-            series.status = Series.AirStatus.UNKNOWN
+            imdb_id=obj.IMDB_ID
+        )
 
         return series
 
     @staticmethod
     def cast_season(obj):
-        return Season(
+        return SeasonMetadata(
             number=str(obj.season_number),
             episode_count=len(obj)
         )
 
     @staticmethod
-    def cast_episode(obj, season):
-        return Episode(
-            season=season,
+    def cast_episode(obj):
+        return EpisodeMetadata(
             number=str(obj.EpisodeNumber),
             name=obj.EpisodeName,
             desc=obj.Overview,
@@ -80,5 +81,5 @@ class TVDBInfoProvider(object):
 
         result = []
         for episode in obj.seasons[int(season)].episodes.values():
-            result.append(self.cast_episode(episode, season))
+            result.append(self.cast_episode(episode))
         return filter(bool, result)

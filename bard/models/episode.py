@@ -1,9 +1,19 @@
+from collections import namedtuple
 from datetime import datetime
 from peewee import *
 from bard.constants import QUALITIES
 from bard.models import BaseModel
 from bard.models.season import Season
 from bard.providers import providers
+
+
+EpisodeMetadata = namedtuple('EpisodeMetadata', (
+    'number',
+    'name',
+    'desc',
+    'airdate',
+    'imdb_id',
+))
 
 
 @BaseModel.register
@@ -49,6 +59,24 @@ class Episode(BaseModel):
     def season_episode_id(self):
         return 'S{}E{}'.format(self.season.number, self.number)
 
+    @classmethod
+    def from_metadata(cls, season, metadata, state=0):
+        return cls.create(
+            season=season,
+            state=state,
+            number=metadata.number,
+            name=metadata.name,
+            desc=metadata.desc,
+            airdate=metadata.airdate,
+            imdb_id=metadata.imdb_id
+        )
+
+    def update_from_metadata(self, metadata):
+        self.name = metadata.name
+        self.desc = metadata.desc
+        self.airdate = metadata.airdate
+        self.imdb_id = metadata.imdb_id
+
     def fetch(self, torrent_metadata):
         from bard.models.torrent import Torrent
 
@@ -61,12 +89,6 @@ class Episode(BaseModel):
 
         self.state = self.State.FETCHED
         self.save()
-
-    def merge(self, other):
-        self.name = other.name
-        self.desc = other.desc
-        self.airdate = other.airdate or None
-        self.imdb_id = other.imdb_id
 
     def to_string(self):
         return '{} - {}'.format(self.series.name, self.season_episode_id)

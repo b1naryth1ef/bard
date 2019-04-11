@@ -2,9 +2,9 @@ import time
 import logging
 import requests
 
-from bard.models.series import Series
-from bard.models.season import Season
-from bard.models.episode import Episode
+from bard.models.series import Series, SeriesMetadata
+from bard.models.season import SeasonMetadata
+from bard.models.episode import EpisodeMetadata
 
 BASE_URL = 'https://api.themoviedb.org/3/'
 IMAGE_URL_FORMAT = 'https://image.tmdb.org/t/p/w500/{}'
@@ -13,6 +13,8 @@ log = logging.getLogger(__name__)
 
 
 class TMDBInfoProvider(object):
+    name = 'tmdb'
+
     def __init__(self, config):
         self.api_key = config['api_key']
         self.session = requests.Session()
@@ -30,43 +32,44 @@ class TMDBInfoProvider(object):
         return r.json()
 
     def cast_series(self, obj, with_network=True, with_external_ids=False):
-        series = Series(
-            provider_id=obj['id'],
-            name=obj['name'],
-            desc=obj['overview'],
-            banner=IMAGE_URL_FORMAT.format(obj['backdrop_path']),
-            poster=IMAGE_URL_FORMAT.format(obj['poster_path']),
-        )
-
+        imdb_id = None
         if with_external_ids:
             external_ids = self.get('tv/{}/external_ids'.format(obj['id']))
-            series.imdb_id = external_ids.get('imdb_id')
+            imdb_id = external_ids.get('imdb_id')
 
+        network = None
         if with_network:
             details = self.get('tv/{}'.format(obj['id']))
             if details['networks']:
-                series.network = details['networks'][0]['name']
+                network = details['networks'][0]['name']
+
+        series = SeriesMetadata(
+            provider_ids={'tmdb': obj['id']},
+            status=Series.AirStatus.UNKNOWN,
+            name=obj['name'],
+            desc=obj['overview'],
+            network=network,
+            content_rating=None,
+            banner=IMAGE_URL_FORMAT.format(obj['backdrop_path']),
+            poster=IMAGE_URL_FORMAT.format(obj['poster_path']),
+            imdb_id=imdb_id,
+        )
 
         return series
 
     def cast_season(self, obj):
-        return Season(
+        return SeasonMetadata(
             number=str(obj['season_number']),
             episode_count=obj['episode_count']
         )
 
     def cast_episode(self, obj):
-        # external_ids = self.get(
-        #     'tv/{}/season/{}/episode/{}/external_ids'.format(
-        #         obj['show_id'],
-        #         obj['season_number'],
-        #         obj['episode_number']))
-        return Episode(
+        return EpisodeMetadata(
             number=str(obj['episode_number']),
             name=obj['name'],
             desc=obj['overview'],
             airdate=obj['air_date'],
-            # imdb_id=external_ids.get('imdb_id'),
+            imdb_id=None,
         )
 
     def search_series(self, name, **kwargs):

@@ -22,7 +22,7 @@ def test_search_series(tvmaze):
     results = tvmaze.search_series('one punch man')
 
     assert len(results) == 1
-    assert results[0].provider_id == 4201
+    assert results[0].provider_ids['tvmaze'] == 4201
     assert results[0].name == 'One-Punch Man'
     assert results[0].imdb_id == 'tt4508902'
 
@@ -30,7 +30,7 @@ def test_search_series(tvmaze):
 def test_get_series(tvmaze):
     series = tvmaze.get_series(99)
 
-    assert series.provider_id == 99
+    assert series.provider_ids['tvmaze'] == 99
     assert series.name == "America's Next Top Model"
     assert series.imdb_id == 'tt0363307'
 
@@ -47,3 +47,26 @@ def test_get_episodes(tvmaze):
     assert episodes[0].name == 'Pilot'
     assert episodes[0].number == '1'
     assert episodes[0].airdate == datetime(2011, 1, 10, 3, 0)
+
+
+def test_find_by_external(tvmaze):
+    series = tvmaze.find_by_external({'imdb': 'tt0944947'})
+    assert series
+    assert series.provider_ids['tvmaze'] == 82
+    assert series.name == 'Game of Thrones'
+
+
+def test_find_by_external_invalid_id(tvmaze):
+    series = tvmaze.find_by_external({'imdb': 'yeet'})
+    assert not series
+
+
+def test_find_by_external_multi(tvmaze):
+    series = tvmaze.find_by_external({'imdb': 'asdf', 'tvdb': '121361'})
+    assert series
+    assert series.provider_ids['tvmaze'] == 82
+
+    # Should find the imdb one first
+    series = tvmaze.find_by_external({'imdb': 'tt0363307', 'tvdb': '121361'})
+    assert series
+    assert series.provider_ids['tvmaze'] == 99
