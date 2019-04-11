@@ -3,6 +3,7 @@ import shutil
 import rarfile
 import logging
 import mimetypes
+from datetime import datetime, timedelta
 
 from bard import config
 from bard.providers import providers
@@ -25,6 +26,8 @@ def update_torrents():
             (Torrent.state == Torrent.State.DOWNLOADING)
         )
     }
+    if not torrents:
+        return
 
     log.info('Updating %s torrents that are DOWNLOADING', len(torrents))
 
@@ -132,3 +135,23 @@ def unpack_torrent(torrent, rar_file):
     temporary_dir = config['directories']['temporary']
     rf.extract(video_files[0], temporary_dir)
     _store_torrent_media(torrent, os.path.join(temporary_dir, video_files[0]))
+
+
+def prune_torrents():
+    if not config['seed_days']:
+        return
+
+    seeding = {
+        i.fetch_provider_id: i
+        for i in Torrent.select().where(
+            (Torrent.state == Torrent.State.SEEDING)
+        )
+    }
+
+    torrent_infos = providers.fetch.get_torrent_info(seeding.values())
+    for info in torrent_infos:
+        done_date = info.done_date.replace(tzinfo=None)
+        if done_date < datetime.utcnow() - timedelta(days=config['seed_days']):
+            seeding[info.id].state = Torrent.State.COMPLETED
+            seeding[info.id].save()
+            providers.fetch.remove(seeding[info.id])

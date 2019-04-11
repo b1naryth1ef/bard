@@ -12,9 +12,7 @@ torrent_getter = model_getter(Torrent)
 @torrent_getter
 @acl('admin')
 def torrents_index(torrent):
-    providers.fetch.remove(torrent)
-    torrent.delete_instance()
-
+    torrent.remove()
     flash('Deleted Torrent', category='success')
     return redirect(request.referrer)
 

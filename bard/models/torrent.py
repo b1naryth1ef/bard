@@ -49,3 +49,7 @@ class Torrent(BaseModel):
             if getattr(self.State, k) == self.state:
                 return k.title()
         return None
+
+    def remove(self):
+        providers.fetch.remove(self)
+        self.delete_instance()
