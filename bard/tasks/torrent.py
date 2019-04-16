@@ -5,7 +5,7 @@ import logging
 import mimetypes
 from datetime import datetime, timedelta
 
-from bard import config
+from bard.app import config
 from bard.providers import providers
 from bard.models.torrent import Torrent
 

@@ -19,3 +19,6 @@ class Media(BaseModel):
 
     path = CharField(null=True)
     size = IntegerField(null=True)
+
+    def __repr__(self):
+        return u'<Media %s>'.format(self.id)

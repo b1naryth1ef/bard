@@ -62,11 +62,15 @@ class TVMazeInfoProvider(object):
 
     @staticmethod
     def _cast_episode(obj):
+        airdate = None
+        if obj['airstamp']:
+            airdate = datetime.strptime(obj['airstamp'].split('+')[0], '%Y-%m-%dT%H:%M:%S')
+
         return EpisodeMetadata(
             number=str(obj['number']),
             name=obj['name'],
             desc=obj['summary'],
-            airdate=datetime.strptime(obj['airstamp'].split('+')[0], '%Y-%m-%dT%H:%M:%S'),
+            airdate=airdate,
             imdb_id=None,
         )
 

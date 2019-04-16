@@ -10,8 +10,8 @@ import click
 
 from werkzeug.serving import run_with_reloader
 from gevent import pywsgi
-from bard import app, config, before_first_request
-from bard.cron import scheduler as cron_scheduler
+from bard.app import app, config, before_first_request
+from bard.cron import scheduler as cron_scheduler, init_cron
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ def serve(reloader, scheduler):
     if scheduler:
         # TODO: support reloading scheduler too
         assert not reloader
+        init_cron()
         gevent.spawn(cron_scheduler.run)
 
     if reloader:
@@ -96,6 +97,7 @@ def resetdb():
 @cli.command('scheduler')
 def run_scheduler():
     print('Running scheduler')
+    init_cron()
     cron_scheduler.run()
 
 
@@ -144,6 +146,12 @@ def link_provider(provider_name):
             continue
 
         log.info('Series %r was unable to be linked (%s results)', series, len(results))
+
+
+@cli.command('prune-missing-media')
+def prune_missing_media():
+    from bard.tasks.media import prune_missing_media
+    prune_missing_media()
 
 
 if __name__ == '__main__':
