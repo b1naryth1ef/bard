@@ -14,7 +14,7 @@
     <td>{{ show.network }}</td>
     {% if g.acl != 'guest' %}
       {% if external_result %}
-        <td><a href="/series/add?provider_id={{ show.provider_ids.values()|first }}">ADD</a></td>
+        <td><a href="/series/add?provider_id={{ show.provider_id }}">ADD</a></td>
       {% else %}
         {% if show.subscribed %}
         <td><a href="/series/{{ show.id }}/unsub">Unsub</a></td>

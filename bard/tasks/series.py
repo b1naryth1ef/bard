@@ -1,6 +1,7 @@
 import logging
 
 from bard.providers import providers
+from bard.util.info import select_best_series
 from bard.models.series import Series
 from bard.models.season import Season
 
@@ -20,22 +21,36 @@ def update_series(series):
     from bard.tasks.library import update_series_media
     log.info('Performing update on series %s (%s)', series.name, series.id)
 
-    # Update the series metadata
-    series_info = providers.info.get_series(series)
-    series.update_from_metadata(series_info)
-    series.save()
+    # TODO: update series metadata here too?
 
-    seasons = providers.info.get_seasons(series)
-    for season_info in seasons:
-        season = None
+    seasons = providers.info.get_seasons(series.provider_id)
+    for season in seasons:
         try:
             # If we have an existing season, just update that
-            season = Season.get(series=series, number=season_info.number)
-            season.update_from_metadata(season_info)
-            season.save()
+            existing_season = Season.select().where(
+                (Season.series == series) &
+                (Season.number == season.number)
+            ).get()
+            existing_season.merge(season)
+            season = existing_season
         except Season.DoesNotExist:
-            season = Season.from_metadata(series, season_info)
+            # Otherwise lets use our new season
+            season.series = series
 
+        season.save()
         update_season(season)
 
     update_series_media(series)
+
+
+def repair_provider_ids():
+    for series in Series.select():
+        result = select_best_series(providers.info, series.name)
+        if not result:
+            log.warning('Failed to repair provider ID for series %s (%s)', series.name, series.id)
+            continue
+
+        if series.provider_id != result.provider_id:
+            series.provider_id = result.provider_id
+            series.save()
+            log.info('Repaired provider_id for series %s (%s)', series.name, series.id)

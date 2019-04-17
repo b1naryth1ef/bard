@@ -8,14 +8,19 @@ log = logging.getLogger(__name__)
 def update_season(season):
     log.info('Performing an update on season %s, %s (%s)', season.number, season.series.name, season.series.id)
 
-    for episode_info in providers.info.get_episodes(season.series, season.number):
+    for episode in providers.info.get_episodes(season.series.provider_id, season.number):
         try:
-            episode = Episode.get(season=season, number=episode_info.number)
-            episode.update_from_metadata(episode_info)
-            episode.save()
+            existing_episode = Episode.select().where(
+                (Episode.season == season) &
+                (Episode.number == episode.number)
+            ).get()
+            existing_episode.merge(episode)
+            episode = existing_episode
         except Episode.DoesNotExist:
-            episode = Episode.from_metadata(
-                season,
-                episode_info,
-                state=Episode.State.WANTED if season.subscribed else Episode.State.NONE,
-            )
+            episode.season = season
+
+            # If subscribed, mark this episode as wanted
+            if season.subscribed:
+                episode.state = episode.State.WANTED
+
+        episode.save()

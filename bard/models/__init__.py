@@ -1,19 +1,8 @@
-import os
 try:
     import urlparse
 except ImportError:
     from urllib import parse as urlparse
-from peewee import Model, Proxy
-from playhouse.sqlite_ext import SqliteExtDatabase, JSONField
-
-
-__all__ = [
-    'JSONField',
-    'BaseModel',
-    'database',
-    'REGISTERED_MODELS',
-    'init_db',
-]
+from peewee import SqliteDatabase, Model, Proxy
 
 
 REGISTERED_MODELS = []
@@ -40,18 +29,17 @@ class BaseModel(Model):
 
 
 def init_db(config):
-    for file_name in os.listdir(os.path.dirname(os.path.abspath(__file__))):
-        if file_name.startswith('_') or not file_name.endswith('.py'):
-            continue
-
-        __import__('bard.models.{}'.format(os.path.splitext(os.path.basename(file_name))[0]))
+    # TODO: dynamic
+    import bard.models.episode
+    import bard.models.season
+    import bard.models.series
+    import bard.models.torrent
+    import bard.models.media
 
     obj = urlparse.urlparse(config['database'])
 
     if obj.scheme == "sqlite":
-        database.initialize(SqliteExtDatabase(obj.netloc, pragmas=[
-            ('foreign_keys', 1)
-        ], check_same_thread=False))
+        database.initialize(SqliteDatabase(obj.netloc, pragmas={'foreign_keys': 1}, check_same_thread=False))
     else:
         raise Exception('Unsupported database adapter `{}`, for DB url `{}`'.format(obj.scheme, config['database']))
 
