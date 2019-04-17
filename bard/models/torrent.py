@@ -16,7 +16,7 @@ class Torrent(BaseModel):
 
     download_provider_id = CharField(null=True)
     fetch_provider_id = CharField(null=True)
-    episode = ForeignKeyField(Episode, related_name='torrents', on_delete='CASCADE')
+    episode = ForeignKeyField(Episode, backref='torrents', on_delete='CASCADE')
     state = IntegerField(default=State.NONE, choices=State.ALL)
 
     # Whether this torrent was post-processed

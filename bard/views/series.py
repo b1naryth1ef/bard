@@ -50,15 +50,21 @@ def series_add():
     from bard.tasks.series import update_series
 
     provider_id = request.values.get('provider_id')
-    series = providers.info.get_series(provider_id)
-    if series:
+    series_info = providers.info.get_series_by_provider_id(provider_id)
+
+    # Attempt to link in provider_ids from non-search providers
+    providers.info.link_series_providers(series_info)
+
+    if series_info:
+        series = None
+
         try:
-            series.save()
+            series = Series.from_metadata(series_info)
         except IntegrityError:
-            flash('{} is already a tracked series'.format(series.name), category='error')
+            flash('{} is already a tracked series'.format(series_info.name), category='error')
         else:
             update_series(series)
-            flash('Added {} to tracked series'.format(series.name), category='success')
+            flash('Added {} to tracked series'.format(series_info.name), category='success')
     else:
         flash('Unknown Provider ID ({})'.format(provider_id), category='error')
     return redirect('/series')

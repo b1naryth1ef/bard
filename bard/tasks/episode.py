@@ -2,7 +2,7 @@ import logging
 
 from datetime import datetime
 
-from bard import config
+from bard.app import config
 from bard.providers import providers
 from bard.constants import QUALITIES
 from bard.models.episode import Episode

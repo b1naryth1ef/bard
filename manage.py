@@ -10,8 +10,10 @@ import click
 
 from werkzeug.serving import run_with_reloader
 from gevent import pywsgi
-from bard import app, config, before_first_request
-from bard.cron import scheduler as cron_scheduler
+from bard.app import app, config, before_first_request
+from bard.cron import scheduler as cron_scheduler, init_cron
+
+log = logging.getLogger(__name__)
 
 
 @click.group()
@@ -39,6 +41,7 @@ def serve(reloader, scheduler):
     if scheduler:
         # TODO: support reloading scheduler too
         assert not reloader
+        init_cron()
         gevent.spawn(cron_scheduler.run)
 
     if reloader:
@@ -94,6 +97,7 @@ def resetdb():
 @cli.command('scheduler')
 def run_scheduler():
     print('Running scheduler')
+    init_cron()
     cron_scheduler.run()
 
 
@@ -109,6 +113,45 @@ def update_media_sizes():
         media.size = get_path_size_on_disk(media.path)
         if media.size:
             media.save()
+
+
+@cli.command('link-provider')
+@click.argument('provider-name')
+def link_provider(provider_name):
+    from bard import providers
+    from bard.models.series import Series
+
+    if provider_name not in providers.info._providers:
+        print('Error: `{}` is not a configured info provider'.format(provider_name))
+        return
+
+    provider = providers.info._providers[provider_name]
+
+    unlinked_series = Series.select().where(
+        (Series.provider_ids[provider_name] >> None)
+    )
+    for series in unlinked_series:
+        info = provider.find_by_external(series.provider_ids)
+        if info:
+            log.info('Linked series %r via find_by_external', series)
+            series.provider_ids[provider_name] = info.provider_ids[provider_name]
+            series.save()
+            continue
+
+        results = provider.search_series(series.name)
+        if len(results) == 1:
+            log.info('Linked series %r via search_series', series)
+            series.provider_ids[provider_name] = results[0].provider_ids[provider_name]
+            series.save()
+            continue
+
+        log.info('Series %r was unable to be linked (%s results)', series, len(results))
+
+
+@cli.command('prune-missing-media')
+def prune_missing_media():
+    from bard.tasks.media import prune_missing_media
+    prune_missing_media()
 
 
 if __name__ == '__main__':

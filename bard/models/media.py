@@ -6,7 +6,7 @@ from bard.models.episode import Episode
 
 @BaseModel.register
 class Media(BaseModel):
-    episode = ForeignKeyField(Episode, related_name='medias', on_delete='CASCADE')
+    episode = ForeignKeyField(Episode, backref='medias', on_delete='CASCADE')
 
     library_id = CharField(unique=True)
 
@@ -19,3 +19,6 @@ class Media(BaseModel):
 
     path = CharField(null=True)
     size = IntegerField(null=True)
+
+    def __repr__(self):
+        return u'<Media %s>'.format(self.id)
