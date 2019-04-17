@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from bard.providers import merge_named_tuple
+from bard.util.info import merge_named_tuple
 
 
 def test_merge_named_tuple():
