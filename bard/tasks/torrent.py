@@ -23,23 +23,26 @@ def _is_video_file(filename):
 def update_torrents():
     torrents = {
         i.fetch_provider_id: i for i in Torrent.select().where(
-            (Torrent.state == Torrent.State.DOWNLOADING)
+            (Torrent.state == Torrent.State.DOWNLOADING) | (Torrent.state == Torrent.State.SEEDING)
         )
     }
     if not torrents:
         return
 
-    log.debug('Updating %s torrents that are DOWNLOADING', len(torrents))
+    log.debug('Updating %s torrents that are DOWNLOADING or SEEDING', len(torrents))
 
     torrent_infos = list(providers.fetch.get_torrent_info(torrents.values()))
     for torrent_info in torrent_infos:
         torrent = torrents.pop(torrent_info.id)
+        previous_state = torrent.state
+
         torrent.state = torrent_info.state
-        torrent.done_date = torrent_info.done_date
+        torrent.done_date = torrent_info.done_date.replace(tzinfo=None)
         torrent.save()
 
-        if torrent.state in (Torrent.State.SEEDING, Torrent.State.COMPLETED):
-            process_torrent(torrent, torrent_info.files)
+        if previous_state == Torrent.State.DOWNLOADING:
+            if torrent.state in (Torrent.State.SEEDING, Torrent.State.COMPLETED):
+                process_torrent(torrent, torrent_info.files)
 
     # TODO: check if we have anything left in torrents
     return len(torrent_infos)
@@ -78,7 +81,7 @@ def _store_torrent_media(torrent, source_path, keep=False):
             shutil.copy(source_path, final_destination_path)
         else:
             os.rename(source_path, final_destination_path)
-    except:
+    except Exception:
         log.exception(
             'Failed to store torrent media (%s) %s -> %s (keep=%s): ',
             torrent.id,
@@ -92,7 +95,7 @@ def _store_torrent_media(torrent, source_path, keep=False):
 
 
 def process_torrent(torrent, files):
-    log.debug('Processing torrent %s', torrent.id)
+    log.info('Processing torrent %s', torrent.id)
 
     try:
         # If the torrent contains a rar file attempt to unpack that

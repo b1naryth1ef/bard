@@ -31,8 +31,10 @@ def register_repeating_task(seconds, func):
 
     next_run = Task.get_next_run(func.__name__, seconds)
     if next_run < datetime.utcnow():
+        log.info('Last run of task %s was outside of expected window, executing now', func.__name__)
         scheduler.enter(0, 1, wrap, ())
     else:
+        log.info('Scheduling next run of task %s for %s seconds from now', func.__name__, _seconds_until(next_run))
         scheduler.enter(_seconds_until(next_run), 1, wrap, ())
 
 
