@@ -29,7 +29,7 @@ def update_torrents():
     if not torrents:
         return
 
-    log.info('Updating %s torrents that are DOWNLOADING', len(torrents))
+    log.debug('Updating %s torrents that are DOWNLOADING', len(torrents))
 
     torrent_infos = list(providers.fetch.get_torrent_info(torrents.values()))
     for torrent_info in torrent_infos:
