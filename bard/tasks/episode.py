@@ -1,5 +1,4 @@
 import logging
-
 from datetime import datetime
 
 from bard.app import config

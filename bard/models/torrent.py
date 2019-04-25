@@ -1,10 +1,11 @@
-from peewee import *
+from datetime import datetime, timedelta
+
+from peewee import CharField, ForeignKeyField, IntegerField, BooleanField, BlobField, DateTimeField
 
 from bard.app import config
 from bard.providers import providers
 from bard.models import BaseModel
 from bard.models.episode import Episode
-from datetime import datetime, timedelta
 
 
 @BaseModel.register

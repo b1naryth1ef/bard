@@ -1,7 +1,9 @@
 import string
 from datetime import datetime
 from collections import namedtuple
-from peewee import *
+
+from peewee import CharField, IntegerField, BooleanField, DateTimeField
+
 from bard.models import BaseModel, JSONField
 
 

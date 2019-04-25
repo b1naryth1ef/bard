@@ -1,5 +1,7 @@
 from datetime import timedelta, datetime
-from peewee import *
+
+from peewee import CharField, DateTimeField
+
 from bard.models import BaseModel
 
 

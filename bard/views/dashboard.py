@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+
 from flask import Blueprint, redirect, request, flash, render_template
+
 from bard.util.deco import acl
 from bard.models.series import Series
 from bard.models.season import Season

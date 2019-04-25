@@ -1,8 +1,13 @@
+import logging
+
+from pytvdbapi import api
+
 from bard.models.series import Series, SeriesMetadata
 from bard.models.season import SeasonMetadata
 from bard.models.episode import EpisodeMetadata
 
-from pytvdbapi import api
+
+log = logging.getLogger(__name__)
 
 STATUS_MAP = {
     'Ended': Series.AirStatus.ENDED,
@@ -58,7 +63,8 @@ class TVDBInfoProvider(object):
         for result in q:
             try:
                 results.append(self.cast_series(result))
-            except:
+            except Exception:
+                log.exception('Failed to parse search result %s', result)
                 continue
         return results
 

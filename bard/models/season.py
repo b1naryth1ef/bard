@@ -1,5 +1,7 @@
 from collections import namedtuple
-from peewee import *
+
+from peewee import ForeignKeyField, CharField, IntegerField, BooleanField
+
 from bard.models import BaseModel
 from bard.models.series import Series
 

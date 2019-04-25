@@ -4,8 +4,8 @@ import urllib
 from pyquery import PyQuery
 from .base import BaseDownloadProvider, HTTPSessionProviderMixin, TorrentMetadata
 
-ID_RE = re.compile('\?id=(\d+)')
-PEERS_RE = re.compile('(\d)+ seeders \+ (\d+) leechers')
+ID_RE = re.compile(r'\?id=(\d+)')
+PEERS_RE = re.compile(r'(\d)+ seeders \+ (\d+) leechers')
 
 
 class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin):

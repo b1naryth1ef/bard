@@ -1,5 +1,6 @@
 from peewee import fn
 from flask import Blueprint, request, render_template
+
 from bard.util.deco import acl
 from bard.models.media import Media
 

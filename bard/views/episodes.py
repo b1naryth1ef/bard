@@ -1,14 +1,15 @@
+try:
+    from httplib import NOT_MODIFIED
+except ImportError:
+    from http.client import NOT_MODIFIED
+
 from flask import Blueprint, request, redirect, render_template, flash
+
 from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
 from bard.tasks.episode import find_torrent_for_episode
-
-try:
-    from httplib import NOT_MODIFIED
-except ImportError:
-    from http.client import NOT_MODIFIED
 
 
 episodes = Blueprint('episodes', __name__)

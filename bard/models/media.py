@@ -1,4 +1,4 @@
-from peewee import *
+from peewee import ForeignKeyField, CharField, IntegerField
 
 from bard.models import BaseModel
 from bard.models.episode import Episode

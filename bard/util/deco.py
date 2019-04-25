@@ -1,4 +1,4 @@
-from flask import g, redirect, request, flash
+from flask import g, redirect, flash
 from functools import wraps
 
 from bard.constants import ACL_GROUPS

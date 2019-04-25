@@ -15,6 +15,7 @@ class UTC(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
 
+
 CSRF_ERROR_CODE = 409
 UNAUTHORIZED_ERROR_CODE = 401
 CSRF_HEADER = 'X-Transmission-Session-Id'

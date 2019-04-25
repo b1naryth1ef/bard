@@ -1,5 +1,6 @@
 import os
 import logging
+
 from peewee import IntegrityError, JOIN
 
 from bard.providers import providers

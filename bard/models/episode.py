@@ -1,6 +1,8 @@
 from collections import namedtuple
 from datetime import datetime
-from peewee import *
+
+from peewee import ForeignKeyField, IntegerField, CharField, DateTimeField
+
 from bard.constants import QUALITIES
 from bard.models import BaseModel
 from bard.models.season import Season
@@ -36,7 +38,7 @@ class Episode(BaseModel):
 
     number = CharField()
     name = CharField(null=True)
-    desc = TextField(null=True)
+    desc = CharField(null=True)
     airdate = DateTimeField(null=True)
 
     # Metadata

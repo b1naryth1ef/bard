@@ -70,8 +70,8 @@ def shell():
             readline.set_completer(c.complete)
             readline.parse_and_bind('tab: complete')
             readline.parse_and_bind('set show-all-if-ambiguous on')
-            readline.parse_and_bind('"\C-r": reverse-search-history')
-            readline.parse_and_bind('"\C-s": forward-search-history')
+            readline.parse_and_bind(r'"\C-r": reverse-search-history')
+            readline.parse_and_bind(r'"\C-s": forward-search-history')
 
         except ImportError:
             pass

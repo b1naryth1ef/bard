@@ -30,6 +30,6 @@ class DiscordNotifyProvider(BaseNotifyProvider):
             series=episodes[0].series,
         )
         embed.description = '\n'.join(
-            i.season_episode_id for i in episodes
+            ('- ' + i.season_episode_id) for i in episodes
         )
         self.execute(embeds=[embed])
