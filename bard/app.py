@@ -1,13 +1,13 @@
+import yaml
 from flask import Flask, request, g
 
 from .constants import ACL_GROUPS
 from .models import init_db
-from .util.config import BardConfig
 from .providers import providers
 
 
 app = Flask(__name__)
-config = BardConfig.load()
+config = yaml.load(open('config.yaml').read(), Loader=yaml.FullLoader)
 app.secret_key = config['web']['secret_key']
 
 

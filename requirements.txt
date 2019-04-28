@@ -9,3 +9,4 @@ requests==2.21.0
 disco-py==0.0.12
 plexapi==3.1.0
 rarfile==3.0
+PyYAML==5.1

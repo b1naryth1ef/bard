@@ -1,3 +1,4 @@
 *.db
 config.json
+config.yaml
 notes
