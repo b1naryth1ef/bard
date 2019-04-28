@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def _seconds_until(future_dt):
-    return (datetime.utcnow() - future_dt).seconds
+    return (future_dt - datetime.utcnow()).seconds
 
 
 def register_repeating_task(seconds, func):
