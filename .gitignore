@@ -1,4 +1,3 @@
 *.db
-config.json
-config.yaml
+bard.yaml
 notes
