@@ -165,11 +165,13 @@ class TransmissionFetchProvider(object):
         )
 
     def download(self, torrent):
-        r = self.client('torrent-add',
-                metainfo=base64.b64encode(torrent.raw),
-                paused=self.start_paused,
-                peer_limit=self.peer_limit)
+        params = {'paused': self.start_paused, 'peer_limit': self.peer_limit}
+        if torrent.raw.startswith(b'magnet'):
+            params['filename'] = torrent.raw.decode('utf-8')
+        else:
+            params['metainfo'] = base64.b64encode(torrent.raw).decode('utf-8')
 
+        r = self.client('torrent-add', **params)
         if 'torrent-added' in r:
             return r['torrent-added']['hashString']
         elif 'torrent-duplicate' in r:
