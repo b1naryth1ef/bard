@@ -56,6 +56,8 @@ class Series(BaseModel):
 
     provider_ids = JSONField()
 
+    download_provider = CharField(null=True)
+
     def __repr__(self):
         return u'<Series {} ({})>'.format(self.id, self.name)
 

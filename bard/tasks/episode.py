@@ -10,23 +10,25 @@ from bard.models.torrent import Torrent
 log = logging.getLogger(__name__)
 
 
+def _download_provider_id(download_provider_id):
+    return download_provider_id
+
+
 def find_torrent_for_episode(episode):
     log.debug('Searching for episode `%s`', episode)
-    results = providers.download.search(
-        episode,
-        exclude=[i.download_provider_id for i in episode.torrents],
-    )
+
+    results = providers.download.search(episode)
 
     if not len(results):
         log.debug('Failed to find any torrents for episode `%s`', episode)
         return None
 
     # Filter out torrents we've already fetched
-    existing_torrents = Torrent.select(Torrent.download_provider_id).where(
-        (Torrent.episode == episode)
-    )
-    existing_torrent_ids = [i.download_provider_id for i in existing_torrents]
-    results = [i for i in results if i.id not in existing_torrent_ids]
+    existing_torrent_ids = Torrent.select(Torrent.download_provider_id).where(
+        (Torrent.episode == episode) &
+        (Torrent.download_provider == results[0].provider)
+    ).objects(_download_provider_id)
+    results = [i for i in results if i.provider_id not in existing_torrent_ids]
 
     if not len(results):
         log.debug('Excluded all torrents based on previous fetches for episode `%s`', episode)
@@ -45,7 +47,7 @@ def find_torrent_for_episode(episode):
     #  the default "no" quality (aka empty string)
     qualities = {}
     for quality in QUALITIES:
-        qualities[quality] = filter(lambda k: quality in k.title.lower(), results)
+        qualities[quality] = [i for i in results if quality in i.title.lower()]
 
     if qualities[desired_quality]:
         return qualities[desired_quality][0]

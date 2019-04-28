@@ -1,8 +1,14 @@
 import re
-import urllib
+
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 
 from pyquery import PyQuery
-from .base import BaseDownloadProvider, HTTPSessionProviderMixin, TorrentMetadata
+from .base import BaseDownloadProvider, HTTPSessionProviderMixin
+from bard.models.torrent import TorrentMetadata
+
 
 ID_RE = re.compile(r'\?id=(\d+)')
 PEERS_RE = re.compile(r'(\d)+ seeders \+ (\d+) leechers')
@@ -32,33 +38,24 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         # TODO: validation for common errors
 
     def search(self, episode, exclude=None):
-        queries = episode.generate_search_queries()
+        query = '{} S{}E{}'.format(
+            episode.series.name.replace("'", ''),
+            episode.season.number.zfill(2),
+            episode.number.zfill(2),
+        )
 
-        if not len(queries):
-            raise Exception('nothing to search')
+        r = self.session.get(self.URLS['BASE'] + self.URLS['SEARCH'],
+            params=urlencode({
+                'q': query
+            }) + ';o=seeders')
 
-        for query in queries:
-            # query = urllib.encode(query) #+ ';o=seeders')
-            r = self.session.get(self.URLS['BASE'] + self.URLS['SEARCH'],
-                params=urllib.urlencode({
-                    'q': query
-                }) + ';o=seeders')
-
-            r.raise_for_status()
-
-            torrents = list(self._parse_search_results(r.content, exclude=exclude))
-            if not len(torrents):
-                continue
-
-            # Determine whether a match is good or not first
-            return torrents
-
-        return []
-
-    def get_torrent(self, torrent_id):
-        r = self.session.get(self.URLS['BASE'] + self.URLS['INFO'].format(torrent_id))
         r.raise_for_status()
-        return self._parse_torrent(torrent_id, r.content)
+
+        torrents = list(self._parse_search_results(r.content, exclude=exclude))
+        if not len(torrents):
+            return []
+
+        return torrents
 
     def get_torrent_contents(self, torrent_id):
         r = self.session.get(
@@ -75,11 +72,12 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         seeders, leechers = re.findall(PEERS_RE, q('.vat')[1].text)[0]
 
         return TorrentMetadata(
-            torrent_id,
-            next(q('.td_fname')[0].iterchildren()).text.strip(),
-            q('.vat')[3].text.split(' ')[0],
-            seeders,
-            leechers
+            provider='iptorrents',
+            provider_id=torrent_id,
+            title=next(q('.td_fname')[0].iterchildren()).text.strip(),
+            size=q('.vat')[3].text.split(' ')[0],
+            seeders=seeders,
+            leechers=leechers,
         )
 
     def _parse_search_results(self, raw, exclude=None):
@@ -90,15 +88,16 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
 
         # Won't be any if the search failed
         if not len(torrents):
-            raise StopIteration
+            return []
 
         # Otherwise, skip the first row (its the header)
         torrents = torrents[1:]
 
         # No torrents found
         if len(list(torrents[-1].iterchildren())) == 1:
-            raise StopIteration
+            return []
 
+        results = []
         for torrent in torrents:
             parts = list(torrent.iterchildren())
 
@@ -115,4 +114,6 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
             seeders = int(parts[7].text_content())
             leechers = int(parts[8].text_content())
 
-            yield TorrentMetadata(id, title, size, seeders, leechers)
+            results.append(TorrentMetadata('iptorrents', id, title, size, seeders, leechers))
+
+        return results

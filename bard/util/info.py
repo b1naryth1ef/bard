@@ -56,7 +56,7 @@ class InfoAggregator(object):
         self._providers = {}
 
         # Load any providers specified
-        for provider in config.get('providers', []):
+        for provider in config.get('sources', []):
             if provider['name'] in self._providers:
                 raise Exception('Duplicate Provider {}'.format(provider['name']))
 
@@ -76,9 +76,13 @@ class InfoAggregator(object):
         """
         config = self._config['rules'][entity_type]
 
+        providers_to_query = set(config.values())
+        if not providers_to_query:
+            providers_to_query = {self._config['default']}
+
         # Load data for all providers that will be required in this merge
         provider_results = {}
-        for provider in set(config.values()):
+        for provider in providers_to_query:
             if provider not in series.provider_ids:
                 log.warning('Provider %s is not linked to season %s, skipping in aggregation', provider, series.id)
                 continue
@@ -89,7 +93,8 @@ class InfoAggregator(object):
             )
 
         # Generate a base metadata object
-        base = provider_results[config['*']]
+        base_provider = config.get('*', self._config['default'])
+        base = provider_results[base_provider]
         if len(provider_results) == 1:
             return base
 

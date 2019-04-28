@@ -2,15 +2,6 @@ import requests
 import logging
 
 
-class TorrentMetadata(object):
-    def __init__(self, id, title, size, seeders, leechers):
-        self.id = id
-        self.title = title
-        self.size = size
-        self.seeders = seeders
-        self.leechers = leechers
-
-
 class BaseDownloadProvider(object):
     def __init__(self, opts):
         self.__dict__.update(opts)

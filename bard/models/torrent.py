@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from collections import namedtuple
 
 from peewee import CharField, ForeignKeyField, IntegerField, BooleanField, BlobField, DateTimeField
 
@@ -6,6 +7,16 @@ from bard.app import config
 from bard.providers import providers
 from bard.models import BaseModel
 from bard.models.episode import Episode
+
+
+TorrentMetadata = namedtuple('TorrentMetadata', (
+    'provider',
+    'provider_id',
+    'title',
+    'size',
+    'seeders',
+    'leechers',
+))
 
 
 @BaseModel.register
@@ -18,7 +29,9 @@ class Torrent(BaseModel):
 
         ALL = {NONE, DOWNLOADING, SEEDING, COMPLETED}
 
+    download_provider = CharField(null=True)
     download_provider_id = CharField(null=True)
+
     fetch_provider_id = CharField(null=True)
     episode = ForeignKeyField(Episode, backref='torrents', on_delete='CASCADE')
     state = IntegerField(default=State.NONE, choices=State.ALL)
@@ -37,15 +50,17 @@ class Torrent(BaseModel):
     done_date = DateTimeField(null=True)
 
     @classmethod
-    def from_result(cls, episode, torrent, raw):
+    def from_metadata(cls, episode, metadata, raw):
         return cls.create(
+            download_provider=metadata.provider,
+            download_provider_id=metadata.provider_id,
             episode=episode,
-            title=torrent.title,
-            fetch_provider_id=torrent.id,
-            size=torrent.size,
-            seeders=torrent.seeders,
-            leechers=torrent.leechers,
-            raw=raw)
+            title=metadata.title,
+            size=metadata.size,
+            seeders=metadata.seeders,
+            leechers=metadata.leechers,
+            raw=raw,
+        )
 
     @property
     def state_readable(self):

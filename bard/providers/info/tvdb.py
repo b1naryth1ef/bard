@@ -78,7 +78,7 @@ class TVDBInfoProvider(object):
         result = []
         for season in obj.seasons.values():
             result.append(self.cast_season(season))
-        return filter(bool, result)
+        return list(filter(bool, result))
 
     def get_episodes(self, id, season):
         obj = self.client.get_series(id, self.language)
@@ -87,7 +87,7 @@ class TVDBInfoProvider(object):
         result = []
         for episode in obj.seasons[int(season)].episodes.values():
             result.append(self.cast_episode(episode))
-        return filter(bool, result)
+        return list(filter(bool, result))
 
     def find_by_external(self, provider_ids):
         return None

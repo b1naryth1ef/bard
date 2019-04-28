@@ -82,15 +82,17 @@ class Episode(BaseModel):
     def fetch(self, torrent_metadata):
         from bard.models.torrent import Torrent
 
-        raw = providers.download.get_torrent_contents(torrent_metadata.id)
+        raw = providers.download.get_torrent_contents(torrent_metadata)
 
-        torrent = Torrent.from_result(self, torrent_metadata, raw)
+        torrent = Torrent.from_metadata(self, torrent_metadata, raw)
         torrent.fetch_provider_id = providers.fetch.download(torrent)
         torrent.state = torrent.State.DOWNLOADING
         torrent.save()
 
-        self.state = self.State.FETCHED
-        self.save()
+        # Only mark as FETCHED if we don't have local media assets
+        if self.state != self.State.DOWNLOADED:
+            self.state = self.State.FETCHED
+            self.save()
 
     def to_string(self):
         return '{} - {}'.format(self.series.name, self.season_episode_id)
@@ -105,29 +107,3 @@ class Episode(BaseModel):
     @staticmethod
     def sanitize_name(name):
         return name.replace("'", '').replace('.', '_')
-
-    def generate_search_queries(self):
-        series_name = self.series.name.replace("'", '')
-
-        fmt = '{} S{}E{} {}'.format(
-            series_name,
-            self.season.number.zfill(2),
-            self.number.zfill(2),
-            '{}')
-
-        queries = []
-
-        # Iterate over qualities in the order we want
-        qualities = list(QUALITIES)
-
-        # If we have a preferred quality, order it first
-        if self.quality:
-            qualities.remove(self.quality)
-            qualities = [self.quality] + qualities
-
-        for quality in qualities:
-            # First, generate our preferred qualities
-            queries.append(fmt.format(quality))
-
-        # TODO: as a fallback, we should search for the entire season
-        return queries

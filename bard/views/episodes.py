@@ -90,11 +90,14 @@ def episodes_torrent_list(episode):
 @episode_getter
 @acl('admin')
 def episode_fetch(episode):
-    torrent_id = request.values.get('id')
-    metadata = providers.download.get_torrent(torrent_id)
-    if metadata:
-        episode.fetch(metadata)
+    torrent_provider_id = request.values.get('provider_id')
+
+    torrents = providers.download.search(episode)
+    torrent = next((i for i in torrents if i.provider_id == torrent_provider_id), None)
+    if torrent:
+        episode.fetch(torrent)
         flash('Ok, started a download of that torrent for this episode', category='success')
     else:
         flash('Invalid or expired torrent', category='error')
+
     return magic_redirect('/episodes/{}'.format(episode.id))
