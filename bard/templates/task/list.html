@@ -1,0 +1,16 @@
+{% macro render_task_list(tasks) %}
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Last Run</th>
+  </tr>
+  {% for task in tasks %}
+  <tr>
+    <td>{{ task.id }}</td>
+    <td>{{ task.name }}</td>
+    <td>{{ task.last_run }} ({{ task.last_run_seconds }}s ago)</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endmacro %}

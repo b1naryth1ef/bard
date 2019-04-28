@@ -10,6 +10,10 @@ class Task(BaseModel):
     name = CharField(unique=True)
     last_run = DateTimeField()
 
+    @property
+    def last_run_seconds(self):
+        return (datetime.utcnow() - self.last_run).seconds
+
     @classmethod
     def get_next_run(cls, name, cadence):
         try:
