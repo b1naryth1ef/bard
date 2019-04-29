@@ -146,11 +146,11 @@ class InfoAggregator(object):
         return need_save
 
     def search_series(self, name):
-        provider = self._providers[self._config['search']]
+        provider = self._providers[self._config['default']]
         return provider.search_series(name)
 
     def get_series_by_provider_id(self, provider_id):
-        return self._providers[self._config['search']].get_series(provider_id)
+        return self._providers[self._config['default']].get_series(provider_id)
 
     def get_series(self, series):
         return self._calculate_metadata('series', 'get_series', series)
