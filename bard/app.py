@@ -32,6 +32,12 @@ config = Configuration(
 app.secret_key = config['web']['secret_key']
 
 
+if config.get('web.graphql', False):
+    from bard.graphql.query import gql_route, giql_route
+    app.add_url_rule('/graphql', view_func=gql_route, methods=('POST', ))
+    app.add_url_rule('/graphiql', view_func=giql_route, methods=('GET', ))
+
+
 def register_blueprints():
     from .views.dashboard import dashboard
     from .views.episodes import episodes
