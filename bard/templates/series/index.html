@@ -3,6 +3,9 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>{{ series.name }}</h1>
+{% if series.banner %}
+  <img src="{{ series.banner }}" width="128px" style="float: right;" />
+{% endif %}
 {% if g.acl != 'guest' %}
   {% if series.subscribed %}
   <a href="/series/{{ series.id }}/unsub">Unsubscribe</a>
