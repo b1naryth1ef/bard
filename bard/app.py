@@ -25,7 +25,8 @@ config = Configuration(
         'acls': dict,
         'database': str,
         'seed_days': int,
-        'default_quality': str,
+        'quality': dict,
+        'quality.desired': str,
     },
 )
 

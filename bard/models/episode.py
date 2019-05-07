@@ -3,7 +3,6 @@ from datetime import datetime
 
 from peewee import ForeignKeyField, IntegerField, CharField, DateTimeField
 
-from bard.constants import QUALITIES
 from bard.models import BaseModel
 from bard.models.season import Season
 from bard.providers import providers
@@ -45,7 +44,7 @@ class Episode(BaseModel):
     imdb_id = CharField(null=True)
 
     # Quality Preference
-    quality = CharField(default='', choices=QUALITIES, null=True)
+    quality = CharField(default='', null=True)
 
     @property
     def aired(self):

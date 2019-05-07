@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bard.app import config
 from bard.providers import providers
@@ -37,20 +37,41 @@ def find_torrent_for_episode(episode):
     # Store the results by seeders
     results = sorted(results, key=lambda i: i.seeders, reverse=True)
 
-    desired_quality = episode.quality or config.get('default_quality')
-
-    # If no quality preference is selected, return the highest seeder count
+    # If we have no quality preferences set in the config, return the highest
+    #  seeder count result.
+    desired_quality = config['quality'].get('desired')
     if desired_quality is None:
         return results[0]
 
-    # Sort episodes by quality, this is so we don't include 720p/1080p with
-    #  the default "no" quality (aka empty string)
-    qualities = {}
-    for quality in QUALITIES:
-        qualities[quality] = [i for i in results if quality in i.title.lower()]
+    # If we're still in the time window defined by max_wait_minutes and calculated
+    #  based on the episode airdate, that means we won't accept torrents detected
+    #  as a lower quality.
+    max_wait_minutes = config['quality'].get('max_wait_minutes')
+    if max_wait_minutes:
+        cutoff = episode.airdate + timedelta(minutes=max_wait_minutes)
+        if datetime.utcnow() < cutoff:
+            # Remove all results that may not be encoded at our desired quality
+            results = [i for i in results if desired_quality in i.title.lower()]
 
-    if qualities[desired_quality]:
-        return qualities[desired_quality][0]
+            # If we have a result return that
+            if results:
+                return results[0]
+
+    # Grab qualities and order by highest first
+    qualities_to_check = list(reversed(QUALITIES))
+
+    # If we have a desired quality we want to search by that first, and then go
+    #  based on highest to lowest quality.
+    if desired_quality:
+        qualities_to_check.remove(desired_quality)
+        qualities_to_check = [desired_quality] + qualities_to_check
+
+    for quality in qualities_to_check:
+        for result in results:
+            if quality in result.title.lower():
+                return result
+
+    # Just return the highest seeder count result
     return results[0]
 
 
