@@ -4,7 +4,7 @@ Bard is a all-in-one PVR for tracking, downloading and processing TV shows on a 
 
 - Simple HTML5/CSS Web UI (read: no javascript/bloat)
 - Fetch content in resolutions and codecs that fit your libraries needs
-- Lightweight contained webserver (data can be stored in sqlite, tasks can be scheduled via cron)
+- Lightweight contained webserver (data can be stored in sqlite)
 
 ## Status
 

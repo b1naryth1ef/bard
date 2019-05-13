@@ -38,7 +38,7 @@ def register_repeating_task(seconds, func):
         scheduler.enter(_seconds_until(next_run), 1, wrap, ())
 
 
-def init_cron():
+def init_scheduler():
     register_repeating_task(60, update_torrents)
     register_repeating_task(60, update_missing_items)
     register_repeating_task(60 * 30, find_episodes)

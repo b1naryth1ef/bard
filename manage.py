@@ -11,7 +11,7 @@ import click
 from werkzeug.serving import run_with_reloader
 from gevent import pywsgi
 from bard.app import app, config, before_first_request
-from bard.cron import scheduler as cron_scheduler, init_cron
+from bard.scheduler import scheduler, init_scheduler
 
 log = logging.getLogger(__name__)
 
@@ -41,8 +41,8 @@ def serve(reloader, scheduler):
     if scheduler:
         # TODO: support reloading scheduler too
         assert not reloader
-        init_cron()
-        gevent.spawn(cron_scheduler.run)
+        init_scheduler()
+        gevent.spawn(scheduler.run)
 
     if reloader:
         run_with_reloader(run)
@@ -97,8 +97,8 @@ def resetdb():
 @cli.command('scheduler')
 def run_scheduler():
     print('Running scheduler')
-    init_cron()
-    cron_scheduler.run()
+    init_scheduler()
+    scheduler.run()
 
 
 @cli.command('update-media-sizes')
