@@ -1,7 +1,6 @@
 from plexapi.server import PlexServer
 from plexapi.exceptions import NotFound
-from bard.models.media import Media
-from collections import defaultdict
+from bard.models.media import MediaMetadata
 
 
 class PlexLibraryProvider(object):
@@ -10,22 +9,35 @@ class PlexLibraryProvider(object):
         self.plex = PlexServer(config['url'], config['token'])
 
     @property
-    def section(self):
+    def _section(self):
         return self.plex.library.section(self.config.get('section', 'TV Shows'))
 
-    def get_all_series(self):
-        return [show.title for show in self.section.all()]
+    def _search_series(self, query):
+        return self._section.searchShows(title=query)
 
-    def find_series_media(self, series_name):
-        seasons = defaultdict(dict)
+    def _get_library_series(self, series):
+        try:
+            return self._section.get(series.name)
+        except NotFound:
+            results = self._search_series(series.name)
+            if len(results) == 1:
+                return results[0]
+        return None
 
-        r = self.section.get(series_name)
-        for episode in r.episodes():
-            medias = []
+    def get_all_series_names(self):
+        return [show.title for show in self._section.all()]
+
+    def get_all_series_media(self, series):
+        library_series = self._get_library_series(series)
+        if not library_series:
+            return
+
+        for episode in library_series.episodes():
             for media in episode.media:
-                assert len(media.parts) == 1
-                medias.append(Media(
-                    library_id=media.id,
+                yield MediaMetadata(
+                    season_number=str(episode.seasonNumber),
+                    episode_number=str(episode.index),
+                    library_id=str(media.id),
                     video_codec=media.videoCodec,
                     audio_codec=media.audioCodec,
                     width=media.width,
@@ -33,21 +45,5 @@ class PlexLibraryProvider(object):
                     duration=media.duration,
                     bitrate=media.bitrate,
                     path=media.parts[0].file,
-                ))
-            seasons[episode.seasonNumber][episode.index] = medias
-        return seasons
-
-    def find_series_info(self, series_name):
-        try:
-            r = self.section.get(series_name)
-        except NotFound:
-            return None
-
-        return {
-            'title': r.title,
-            'content_rating': r.contentRating,
-            'guid': r.guid,
-        }
-
-    def search_series(self, query):
-        return self.section.searchShows(title=query)
+                    size=0,  # TODO: ???
+                )

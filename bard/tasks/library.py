@@ -1,7 +1,8 @@
 import os
 import logging
+from collections import defaultdict
 
-from peewee import IntegrityError, JOIN
+from peewee import JOIN
 
 from bard.providers import providers
 from bard.util.info import select_best_series
@@ -33,7 +34,7 @@ def scan_library():
 def import_library():
     from bard.tasks.series import update_series
 
-    for series in providers.library.get_all_series():
+    for series in providers.library.get_all_series_names():
         if Series.select().where(Series.name == series).exists():
             continue
 
@@ -47,56 +48,46 @@ def import_library():
 
 
 def update_series_media(series):
-    count = 0
-
-    library_series = providers.library.find_series_info(series.name)
-    if not library_series:
-        results = providers.library.search_series(series.name)
-        if len(results) == 1:
-            library_series = {'title': results[0].title}
-        else:
-            log.warning('Failed to find library series for %s', series.name)
-            return 0
-
-    library_media = providers.library.find_series_media(library_series['title'])
+    # Grab all the media files for this series and group them by season/episode
+    seasons = defaultdict(lambda: defaultdict(list))
+    for media in providers.library.get_all_series_media(series):
+        seasons[media.season_number][media.episode_number].append(media)
 
     episodes = Episode.select().join(Season).where(
         (Season.series == series)
     )
     episodes_to_notify = []
     for episode in episodes:
-        if int(episode.season.number) not in library_media:
+        if episode.season.number not in seasons:
             continue
 
-        if int(episode.number) not in library_media[int(episode.season.number)]:
+        if episode.number not in seasons[episode.season.number]:
             continue
 
-        medias = library_media[int(episode.season.number)][int(episode.number)]
+        medias = seasons[episode.season.number][episode.number]
+        if not medias:
+            continue
 
-        if medias:
-            # TODO: check if this matches our format/resolution first>
-            # If we haven't marked this episode as downloaded yet, we do that now
-            if episode.state != int(Episode.State.DOWNLOADED):
-                episode.state = int(Episode.State.DOWNLOADED)
-                episode.save()
+        # TODO: check if this matches our format/resolution first?
+        # If we haven't marked this episode as downloaded yet, we do that now
+        if episode.state != int(Episode.State.DOWNLOADED):
+            episode.state = int(Episode.State.DOWNLOADED)
+            episode.save()
 
-                episodes_to_notify.append(episode)
+            episodes_to_notify.append(episode)
 
+        for media_metadata in medias:
             try:
-                for media in medias:
-                    media.episode = episode
-                    media.size = get_path_size_on_disk(media.path)
-                    media.save()
-                    count += 1
-            except IntegrityError:
-                continue
+                media = Media.get(library_id=media_metadata.library_id)
+                media.update_from_metadata(media_metadata)
+                media.save()
+            except Media.DoesNotExist:
+                Media.from_metadata(episode, media_metadata)
 
     # Send the episodes we've downloaded to the notify provider. This is done in
     #  bulk to allow our notify provider to special case bulk series loads without
     #  spamming notifications.
     providers.notify.episodes_downloaded(episodes_to_notify)
-
-    return count
 
 
 def update_missing_items():
