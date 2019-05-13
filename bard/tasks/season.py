@@ -20,3 +20,10 @@ def update_season(season):
                 episode_info,
                 state=Episode.State.WANTED if season.subscribed else Episode.State.NONE,
             )
+            log.info(
+                'Added episode %s in state %s due to season %s being subscribed (%s)',
+                episode.id,
+                episode.state,
+                season.id,
+                season.subscribed,
+            )
