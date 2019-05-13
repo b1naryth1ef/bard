@@ -7,24 +7,25 @@ from peewee import CharField, IntegerField, BooleanField, DateTimeField
 from bard.models import BaseModel, JSONField
 
 
-SeriesMetadata = namedtuple('SeriesMetadata', (
-    'provider_ids',
-    'status',
-    'name',
-    'desc',
-    'network',
-    'content_rating',
-    'banner',
-    'poster',
-))
+SeriesMetadata = namedtuple(
+    "SeriesMetadata",
+    (
+        "provider_ids",
+        "status",
+        "name",
+        "desc",
+        "network",
+        "content_rating",
+        "banner",
+        "poster",
+    ),
+)
 
 
 @BaseModel.register
 class Series(BaseModel):
     class Meta:
-        indexes = (
-            (('name', ), True),
-        )
+        indexes = ((("name",), True),)
 
     class AirStatus:
         UNKNOWN = 1
@@ -59,17 +60,17 @@ class Series(BaseModel):
     download_provider = CharField(null=True)
 
     def __repr__(self):
-        return u'<Series {} ({})>'.format(self.id, self.name)
+        return u"<Series {} ({})>".format(self.id, self.name)
 
     @property
     def clean_name(self):
-        return ''.join([c for c in self.name if c in string.ascii_letters + ' '])
+        return "".join([c for c in self.name if c in string.ascii_letters + " "])
 
     @property
     def storage_name(self):
         if self.storage_name_override:
             return self.storage_name_override
-        return self.name.replace('.', '').replace(' ', '.').replace('-', '.')
+        return self.name.replace(".", "").replace(" ", ".").replace("-", ".")
 
     @classmethod
     def from_metadata(cls, metadata):
@@ -88,10 +89,11 @@ class Series(BaseModel):
         try:
             return self.provider_ids[provider_name]
         except KeyError:
-            raise Exception('No provider ID for series {} provider {}'.format(
-                self.id,
-                provider_name,
-            ))
+            raise Exception(
+                "No provider ID for series {} provider {}".format(
+                    self.id, provider_name
+                )
+            )
 
     def update_from_metadata(self, metadata):
         self.status = metadata.status

@@ -23,7 +23,7 @@ def get_path_size_on_disk(path):
 
 
 def scan_library():
-    log.info('Performing a full library scan')
+    log.info("Performing a full library scan")
 
     count = 0
     for series in Series.select():
@@ -40,11 +40,11 @@ def import_library():
 
         result = select_best_series(providers.info, series.name)
         if result:
-            log.debug('Found result for %s, adding to library', series.name)
+            log.debug("Found result for %s, adding to library", series.name)
             result.save()
             update_series(result)
         else:
-            log.debug('No result found for %s', series.name)
+            log.debug("No result found for %s", series.name)
 
 
 def update_series_media(series):
@@ -53,9 +53,7 @@ def update_series_media(series):
     for media in providers.library.get_all_series_media(series):
         seasons[media.season_number][media.episode_number].append(media)
 
-    episodes = Episode.select().join(Season).where(
-        (Season.series == series)
-    )
+    episodes = Episode.select().join(Season).where((Season.series == series))
     episodes_to_notify = []
     for episode in episodes:
         if episode.season.number not in seasons:
@@ -100,13 +98,17 @@ def update_missing_items():
     #  of bard detecting media, we look for all series that have an episode with
     #  a torrent that has been processed, but do not have a corresponding media
     #  item yet.
-    dirty_series = Series.select(Series) \
-        .join(Season).join(Episode).switch(Episode) \
-        .join(Media, JOIN.LEFT_OUTER).switch(Episode) \
-        .join(Torrent) \
-        .where(
-            (Torrent.processed >> True) & (Media.id >> None)
-        ).group_by(Series)
+    dirty_series = (
+        Series.select(Series)
+        .join(Season)
+        .join(Episode)
+        .switch(Episode)
+        .join(Media, JOIN.LEFT_OUTER)
+        .switch(Episode)
+        .join(Torrent)
+        .where((Torrent.processed >> True) & (Media.id >> None))
+        .group_by(Series)
+    )
 
     for series in dirty_series:
         update_series_media(series)

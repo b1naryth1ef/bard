@@ -7,7 +7,12 @@ log = logging.getLogger(__name__)
 
 
 def update_season(season):
-    log.info('Performing an update on season %s, %s (%s)', season.number, season.series.name, season.series.id)
+    log.info(
+        "Performing an update on season %s, %s (%s)",
+        season.number,
+        season.series.name,
+        season.series.id,
+    )
 
     for episode_info in providers.info.get_episodes(season.series, season.number):
         try:
@@ -21,7 +26,7 @@ def update_season(season):
                 state=Episode.State.WANTED if season.subscribed else Episode.State.NONE,
             )
             log.info(
-                'Added episode %s in state %s due to season %s being subscribed (%s)',
+                "Added episode %s in state %s due to season %s being subscribed (%s)",
                 episode.id,
                 episode.state,
                 season.id,

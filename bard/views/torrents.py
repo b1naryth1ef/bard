@@ -4,25 +4,26 @@ from bard.models.torrent import Torrent
 from bard.util.deco import model_getter, acl
 
 
-torrents = Blueprint('torrents', __name__)
+torrents = Blueprint("torrents", __name__)
 torrent_getter = model_getter(Torrent)
 
 
-@torrents.route('/torrents/<id>/delete')
+@torrents.route("/torrents/<id>/delete")
 @torrent_getter
-@acl('admin')
+@acl("admin")
 def torrents_index(torrent):
     torrent.remove()
-    flash('Deleted Torrent', category='success')
+    flash("Deleted Torrent", category="success")
     return redirect(request.referrer)
 
 
-@torrents.route('/torrents/<id>/process')
+@torrents.route("/torrents/<id>/process")
 @torrent_getter
-@acl('admin')
+@acl("admin")
 def torrents_process(torrent):
     from bard.tasks.torrent import process_torrent
+
     info = next(providers.fetch.get_torrent_info([torrent]), None)
     process_torrent(torrent, files=info.files)
-    flash('Processed torrent', category='success')
+    flash("Processed torrent", category="success")
     return redirect(request.referrer)

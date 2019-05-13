@@ -9,13 +9,16 @@ class BaseDownloadProvider(object):
 
     def search(self, episode):
         raise NotImplementedError(
-            '{} must override BaseDownloadProvider.search'.format(self.__class__.__name__))
+            "{} must override BaseDownloadProvider.search".format(
+                self.__class__.__name__
+            )
+        )
 
 
 class HTTPSessionProviderMixin(object):
     @property
     def session(self):
-        if not hasattr(self, '_session'):
+        if not hasattr(self, "_session"):
             self.create_session()
         return self._session
 
@@ -25,4 +28,7 @@ class HTTPSessionProviderMixin(object):
 
     def login(self):
         raise NotImplementedError(
-            '{} must override HTTPSessionProviderMixin.login'.format(self.__class__.__name__))
+            "{} must override HTTPSessionProviderMixin.login".format(
+                self.__class__.__name__
+            )
+        )

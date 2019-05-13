@@ -59,10 +59,11 @@ def decode(s):
     >>> decode(b'd3:bar4:spam3:fooi42ee') == {b'bar': b'spam', b'foo': 42}
     True
     """
+
     def decode_first(s):
         if s.startswith(b"i"):
             match = re.match(b"i(-?\\d+)e", s)
-            return int(match.group(1)), s[match.span()[1]:]
+            return int(match.group(1)), s[match.span()[1] :]
         elif s.startswith(b"l") or s.startswith(b"d"):
             l = []
             rest = s[1:]

@@ -10,24 +10,24 @@ from bard.models.episode import EpisodeMetadata
 log = logging.getLogger(__name__)
 
 STATUS_MAP = {
-    'Ended': Series.AirStatus.ENDED,
-    'Continuing': Series.AirStatus.CONTINUING,
+    "Ended": Series.AirStatus.ENDED,
+    "Continuing": Series.AirStatus.CONTINUING,
 }
 
 
 class TVDBInfoProvider(object):
-    name = 'tvdb'
+    name = "tvdb"
 
     def __init__(self, config):
-        self.client = api.TVDB(config.get('api_key', 'B43FF87DE395DF56'))
-        self.language = config.get('language', 'en')
+        self.client = api.TVDB(config.get("api_key", "B43FF87DE395DF56"))
+        self.language = config.get("language", "en")
 
     @staticmethod
     def cast_series(obj):
         obj.update()
 
         series = SeriesMetadata(
-            provider_ids={'tvdb': int(obj.id), 'imdb': obj.IMDB_ID},
+            provider_ids={"tvdb": int(obj.id), "imdb": obj.IMDB_ID},
             status=STATUS_MAP.get(obj.Status, Series.AirStatus.UNKNOWN),
             name=obj.SeriesName,
             desc=obj.Overview,
@@ -41,10 +41,7 @@ class TVDBInfoProvider(object):
 
     @staticmethod
     def cast_season(obj):
-        return SeasonMetadata(
-            number=str(obj.season_number),
-            episode_count=len(obj)
-        )
+        return SeasonMetadata(number=str(obj.season_number), episode_count=len(obj))
 
     @staticmethod
     def cast_episode(obj):
@@ -64,7 +61,7 @@ class TVDBInfoProvider(object):
             try:
                 results.append(self.cast_series(result))
             except Exception:
-                log.exception('Failed to parse search result %s', result)
+                log.exception("Failed to parse search result %s", result)
                 continue
         return results
 

@@ -22,21 +22,21 @@ class FakeEpisode(object):
         self.quality = quality
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def horriblesubs():
     return HorribleSubsDownloadProvider({})
 
 
 def test_search(horriblesubs):
-    series = FakeSeries('one punch man')
-    season = FakeSeason(series, '1')
-    episode = FakeEpisode(season, '5')
+    series = FakeSeries("one punch man")
+    season = FakeSeason(series, "1")
+    episode = FakeEpisode(season, "5")
 
     results = horriblesubs.search(episode)
     assert len(results) == 3
-    assert {i.title for i in results} == {'480p', '720p', '1080p'}
+    assert {i.title for i in results} == {"480p", "720p", "1080p"}
 
 
 def test_get_torrent_contents(horriblesubs):
-    result = horriblesubs.get_torrent_contents('351-05-720p')
-    assert b'S42OV4WLCTATYOVBDBPKL5YKO57TNOUN' in result
+    result = horriblesubs.get_torrent_contents("351-05-720p")
+    assert b"S42OV4WLCTATYOVBDBPKL5YKO57TNOUN" in result

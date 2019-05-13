@@ -15,23 +15,29 @@ def _download_provider_id(download_provider_id):
 
 
 def find_torrent_for_episode(episode):
-    log.debug('Searching for episode `%s`', episode)
+    log.debug("Searching for episode `%s`", episode)
 
     results = providers.download.search(episode)
 
     if not len(results):
-        log.debug('Failed to find any torrents for episode `%s`', episode)
+        log.debug("Failed to find any torrents for episode `%s`", episode)
         return None
 
     # Filter out torrents we've already fetched
-    existing_torrent_ids = Torrent.select(Torrent.download_provider_id).where(
-        (Torrent.episode == episode) &
-        (Torrent.download_provider == results[0].provider)
-    ).objects(_download_provider_id)
+    existing_torrent_ids = (
+        Torrent.select(Torrent.download_provider_id)
+        .where(
+            (Torrent.episode == episode)
+            & (Torrent.download_provider == results[0].provider)
+        )
+        .objects(_download_provider_id)
+    )
     results = [i for i in results if i.provider_id not in existing_torrent_ids]
 
     if not len(results):
-        log.debug('Excluded all torrents based on previous fetches for episode `%s`', episode)
+        log.debug(
+            "Excluded all torrents based on previous fetches for episode `%s`", episode
+        )
         return None
 
     # Store the results by seeders
@@ -39,14 +45,14 @@ def find_torrent_for_episode(episode):
 
     # If we have no quality preferences set in the config, return the highest
     #  seeder count result.
-    desired_quality = config['quality'].get('desired')
+    desired_quality = config["quality"].get("desired")
     if desired_quality is None:
         return results[0]
 
     # If we're still in the time window defined by max_wait_minutes and calculated
     #  based on the episode airdate, that means we won't accept torrents detected
     #  as a lower quality.
-    max_wait_minutes = config['quality'].get('max_wait_minutes')
+    max_wait_minutes = config["quality"].get("max_wait_minutes")
     if max_wait_minutes:
         cutoff = episode.airdate + timedelta(minutes=max_wait_minutes)
         if datetime.utcnow() < cutoff:
@@ -77,11 +83,8 @@ def find_torrent_for_episode(episode):
 
 def find_episodes():
     episodes = Episode.select().where(
-        (Episode.state == Episode.State.WANTED) &
-        (
-            (~(Episode.airdate >> None)) &
-            (Episode.airdate < datetime.utcnow())
-        )
+        (Episode.state == Episode.State.WANTED)
+        & ((~(Episode.airdate >> None)) & (Episode.airdate < datetime.utcnow()))
     )
 
     count = 0
@@ -91,7 +94,7 @@ def find_episodes():
 
         torrent = find_torrent_for_episode(episode)
         if not torrent:
-            log.info('Failed to find torrent for episode %s', episode.to_string())
+            log.info("Failed to find torrent for episode %s", episode.to_string())
             continue
 
         count += 1

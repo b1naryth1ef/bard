@@ -8,21 +8,15 @@ from bard.models.season import Season
 from bard.providers import providers
 
 
-EpisodeMetadata = namedtuple('EpisodeMetadata', (
-    'number',
-    'name',
-    'desc',
-    'airdate',
-    'imdb_id',
-))
+EpisodeMetadata = namedtuple(
+    "EpisodeMetadata", ("number", "name", "desc", "airdate", "imdb_id")
+)
 
 
 @BaseModel.register
 class Episode(BaseModel):
     class Meta:
-        indexes = (
-            (('season', 'number'), True),
-        )
+        indexes = ((("season", "number"), True),)
 
     class State:
         NONE = 0
@@ -32,7 +26,7 @@ class Episode(BaseModel):
 
         ALL = {NONE, WANTED, FETCHED, DOWNLOADED}
 
-    season = ForeignKeyField(Season, backref='episodes', on_delete='CASCADE')
+    season = ForeignKeyField(Season, backref="episodes", on_delete="CASCADE")
     state = IntegerField(default=State.NONE, choices=State.ALL)
 
     number = CharField()
@@ -44,7 +38,7 @@ class Episode(BaseModel):
     imdb_id = CharField(null=True)
 
     # Quality Preference
-    quality = CharField(default='', null=True)
+    quality = CharField(default="", null=True)
 
     @property
     def aired(self):
@@ -58,7 +52,7 @@ class Episode(BaseModel):
 
     @property
     def season_episode_id(self):
-        return 'S{}E{}'.format(self.season.number, self.number)
+        return "S{}E{}".format(self.season.number, self.number)
 
     @classmethod
     def from_metadata(cls, season, metadata, state=0):
@@ -69,7 +63,7 @@ class Episode(BaseModel):
             name=metadata.name,
             desc=metadata.desc,
             airdate=metadata.airdate,
-            imdb_id=metadata.imdb_id
+            imdb_id=metadata.imdb_id,
         )
 
     def update_from_metadata(self, metadata):
@@ -94,15 +88,15 @@ class Episode(BaseModel):
             self.save()
 
     def to_string(self):
-        return '{} - {}'.format(self.series.name, self.season_episode_id)
+        return "{} - {}".format(self.series.name, self.season_episode_id)
 
     def __repr__(self):
-        return '<Episode - S{}E{} ({})>'.format(
-            self.season.number if self.season else '??',
+        return "<Episode - S{}E{} ({})>".format(
+            self.season.number if self.season else "??",
             self.number,
-            self.series.name if self.series else '??',
+            self.series.name if self.series else "??",
         )
 
     @staticmethod
     def sanitize_name(name):
-        return name.replace("'", '').replace('.', '_')
+        return name.replace("'", "").replace(".", "_")

@@ -9,28 +9,24 @@ from .util.config import Configuration
 
 app = Flask(__name__)
 config = Configuration(
-    locations=(
-        os.getcwd(),
-        '/etc/bard',
-        '~/.config/bard',
-    ),
+    locations=(os.getcwd(), "/etc/bard", "~/.config/bard"),
     validations={
-        'web': dict,
-        'web.secret_key': str,
-        'providers': dict,
-        'directories': dict,
-        'directories.input': str,
-        'directories.output': str,
-        'directories.temporary': str,
-        'acls': dict,
-        'database': str,
-        'seed_days': int,
-        'quality': dict,
-        'quality.desired': str,
+        "web": dict,
+        "web.secret_key": str,
+        "providers": dict,
+        "directories": dict,
+        "directories.input": str,
+        "directories.output": str,
+        "directories.temporary": str,
+        "acls": dict,
+        "database": str,
+        "seed_days": int,
+        "quality": dict,
+        "quality.desired": str,
     },
 )
 
-app.secret_key = config['web']['secret_key']
+app.secret_key = config["web"]["secret_key"]
 
 
 def register_blueprints():
@@ -59,15 +55,15 @@ def before_first_request():
 
 def before_request():
     g.user = None
-    g.acl = 'admin'
+    g.acl = "admin"
 
-    user_header = config.get('web.user_header')
+    user_header = config.get("web.user_header")
     if user_header:
         g.user = request.headers.get(user_header)
-        g.acl = config['acls'].get(g.user, 'guest')
+        g.acl = config["acls"].get(g.user, "guest")
 
     if g.acl not in ACL_GROUPS:
-        g.acl = 'guest'
+        g.acl = "guest"
 
 
 app.before_first_request(before_first_request)

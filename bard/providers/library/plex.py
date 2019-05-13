@@ -6,11 +6,11 @@ from bard.models.media import MediaMetadata
 class PlexLibraryProvider(object):
     def __init__(self, config):
         self.config = config
-        self.plex = PlexServer(config['url'], config['token'])
+        self.plex = PlexServer(config["url"], config["token"])
 
     @property
     def _section(self):
-        return self.plex.library.section(self.config.get('section', 'TV Shows'))
+        return self.plex.library.section(self.config.get("section", "TV Shows"))
 
     def _search_series(self, query):
         return self._section.searchShows(title=query)

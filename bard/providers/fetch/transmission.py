@@ -10,7 +10,7 @@ class UTC(datetime.tzinfo):
         return datetime.timedelta(0)
 
     def tzname(self, dt):
-        return 'UTC'
+        return "UTC"
 
     def dst(self, dt):
         return datetime.timedelta(0)
@@ -18,21 +18,24 @@ class UTC(datetime.tzinfo):
 
 CSRF_ERROR_CODE = 409
 UNAUTHORIZED_ERROR_CODE = 401
-CSRF_HEADER = 'X-Transmission-Session-Id'
+CSRF_HEADER = "X-Transmission-Session-Id"
 
 # UNIX epochs to be turned into UTC datetimes
 TIMESTAMP_KEYS = frozenset(
-    ['activityDate',
-     'addedDate',
-     'dateCreated',
-     'doneDate',
-     'startDate',
-     'lastAnnounceStartTime',
-     'lastAnnounceTime',
-     'lastScrapeStartTime',
-     'lastScrapeTime',
-     'nextAnnounceTime',
-     'nextScrapeTime'])
+    [
+        "activityDate",
+        "addedDate",
+        "dateCreated",
+        "doneDate",
+        "startDate",
+        "lastAnnounceStartTime",
+        "lastAnnounceTime",
+        "lastScrapeStartTime",
+        "lastScrapeTime",
+        "nextAnnounceTime",
+        "nextScrapeTime",
+    ]
+)
 
 
 def epoch_to_datetime(value):
@@ -50,7 +53,8 @@ def datetime_to_epoch(value):
 class TransmissionJSONDecoder(json.JSONDecoder):
     def __init__(self, **kwargs):
         return super(TransmissionJSONDecoder, self).__init__(
-            object_hook=self.object_hook, **kwargs)
+            object_hook=self.object_hook, **kwargs
+        )
 
     def object_hook(self, obj):
         for key, value in obj.items():
@@ -70,8 +74,7 @@ class TransmissionJSONEncoder(json.JSONEncoder):
 
 
 class TransmissionClient(object):
-    def __init__(self, url, path='/transmission/rpc',
-                 username=None, password=None):
+    def __init__(self, url, path="/transmission/rpc", username=None, password=None):
         """
         Initialize the Transmission client.
         The default host, port and path are all set to Transmission's
@@ -93,8 +96,12 @@ class TransmissionClient(object):
         return self._deserialize_response(response)
 
     def _make_request(self, method, **kwargs):
-        body = json.dumps(self._format_request_body(method, **kwargs), cls=TransmissionJSONEncoder)
-        r = requests.post(self.url, data=body, headers=self.headers, auth=self.auth, verify=False)
+        body = json.dumps(
+            self._format_request_body(method, **kwargs), cls=TransmissionJSONEncoder
+        )
+        r = requests.post(
+            self.url, data=body, headers=self.headers, auth=self.auth, verify=False
+        )
 
         if r.status_code == CSRF_ERROR_CODE:
             self.headers[CSRF_HEADER] = r.headers[CSRF_HEADER]
@@ -111,7 +118,7 @@ class TransmissionClient(object):
         # As Python can't accept dashes in kwargs keys, replace any
         # underscores with them here.
         for k, v in kwargs.items():
-            fixed[k.replace('_', '-')] = v
+            fixed[k.replace("_", "-")] = v
         return {"method": method, "tag": self.tag, "arguments": fixed}
 
     def _deserialize_response(self, response):
@@ -121,94 +128,97 @@ class TransmissionClient(object):
         """
         doc = json.loads(response.text, cls=TransmissionJSONDecoder)
 
-        if doc['result'] != 'success':
-            raise Exception('Request failed: `%s`' % doc['result'])
+        if doc["result"] != "success":
+            raise Exception("Request failed: `%s`" % doc["result"])
 
-        if doc['tag'] != self.tag:
-            raise Exception('Tag mismatch: (got %s expected %s)' % (doc['tag'], self.tag))
+        if doc["tag"] != self.tag:
+            raise Exception(
+                "Tag mismatch: (got %s expected %s)" % (doc["tag"], self.tag)
+            )
         else:
             self.tag += 1
 
-        if 'arguments' in doc:
-            return doc['arguments'] or None
+        if "arguments" in doc:
+            return doc["arguments"] or None
         return None
 
 
 class TransmissionFetchProvider(object):
     STATUS_FIELDS = [
-        'hashString',
-        'activityDate',
-        'addedDate',
-        'downloadDir',
-        'doneDate',
-        'error',
-        'errorString',
-        'eta',
-        'files',
-        'fileStats',
-        'isFinished',
-        'isStalled',
-        'peers',
-        'percentDone',
-        'pieces',
-        'secondsDownloading'
+        "hashString",
+        "activityDate",
+        "addedDate",
+        "downloadDir",
+        "doneDate",
+        "error",
+        "errorString",
+        "eta",
+        "files",
+        "fileStats",
+        "isFinished",
+        "isStalled",
+        "peers",
+        "percentDone",
+        "pieces",
+        "secondsDownloading",
     ]
 
     def __init__(self, opts):
-        self.start_paused = opts.pop('start_paused', False)
-        self.peer_limit = opts.pop('peer_limit', 500)
+        self.start_paused = opts.pop("start_paused", False)
+        self.peer_limit = opts.pop("peer_limit", 500)
         self.client = TransmissionClient(
-            opts['url'],
-            opts.get('path', '/transmission/rpc'),
-            opts.get('username'),
-            opts.get('password'),
+            opts["url"],
+            opts.get("path", "/transmission/rpc"),
+            opts.get("username"),
+            opts.get("password"),
         )
 
     def download(self, torrent):
-        params = {'paused': self.start_paused, 'peer_limit': self.peer_limit}
-        if torrent.raw.startswith(b'magnet'):
-            params['filename'] = torrent.raw.decode('utf-8')
+        params = {"paused": self.start_paused, "peer_limit": self.peer_limit}
+        if torrent.raw.startswith(b"magnet"):
+            params["filename"] = torrent.raw.decode("utf-8")
         else:
-            params['metainfo'] = base64.b64encode(torrent.raw).decode('utf-8')
+            params["metainfo"] = base64.b64encode(torrent.raw).decode("utf-8")
 
-        r = self.client('torrent-add', **params)
-        if 'torrent-added' in r:
-            return r['torrent-added']['hashString']
-        elif 'torrent-duplicate' in r:
-            return r['torrent-duplicate']['hashString']
+        r = self.client("torrent-add", **params)
+        if "torrent-added" in r:
+            return r["torrent-added"]["hashString"]
+        elif "torrent-duplicate" in r:
+            return r["torrent-duplicate"]["hashString"]
         else:
-            raise Exception('Failed to add torrent to transmission: {}'.format(r))
+            raise Exception("Failed to add torrent to transmission: {}".format(r))
 
     def remove(self, torrent):
         self.client(
-                'torrent-remove',
-                ids=[torrent.fetch_provider_id],
-                delete_local_data=True,
+            "torrent-remove", ids=[torrent.fetch_provider_id], delete_local_data=True
         )
 
     @staticmethod
     def _get_state_from_info(info):
         from bard.models.torrent import Torrent
 
-        if info['percentDone'] != 1:
+        if info["percentDone"] != 1:
             return Torrent.State.DOWNLOADING
-        elif info['isFinished']:
+        elif info["isFinished"]:
             return Torrent.State.COMPLETED
         else:
             return Torrent.State.SEEDING
 
     def get_torrent_info(self, torrents):
         from bard.providers.fetch import TorrentFetchInfo
-        data = self.client('torrent-get', ids=[
-            i.fetch_provider_id for i in torrents
-        ], fields=self.STATUS_FIELDS)['torrents']
+
+        data = self.client(
+            "torrent-get",
+            ids=[i.fetch_provider_id for i in torrents],
+            fields=self.STATUS_FIELDS,
+        )["torrents"]
 
         for item in data:
             yield TorrentFetchInfo(
-                id=item['hashString'],
+                id=item["hashString"],
                 state=self._get_state_from_info(item),
-                done_date=item['doneDate'],
-                peers=item['peers'],
-                percent_done=item['percentDone'],
-                files=[i['name'] for i in item['files']],
+                done_date=item["doneDate"],
+                peers=item["peers"],
+                percent_done=item["percentDone"],
+                files=[i["name"] for i in item["files"]],
             )

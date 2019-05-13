@@ -5,11 +5,11 @@ from bard.providers import get_provider_from_config
 
 log = logging.getLogger(__name__)
 
-YEAR_RE = re.compile(r'\(\d{4}\)')
+YEAR_RE = re.compile(r"\(\d{4}\)")
 
 
 def _sanitize_series_name(name):
-    return re.sub(YEAR_RE, name, '').strip()
+    return re.sub(YEAR_RE, name, "").strip()
 
 
 def select_best_series(info_provider, name):
@@ -51,16 +51,19 @@ class InfoAggregator(object):
     about series, seasons, and episodes. This class implements the entire required
     interface for info providers, and thus is used in place of regular providers.
     """
+
     def __init__(self, config):
         self._config = config
         self._providers = {}
 
         # Load any providers specified
-        for provider in config.get('sources', []):
-            if provider['name'] in self._providers:
-                raise Exception('Duplicate Provider {}'.format(provider['name']))
+        for provider in config.get("sources", []):
+            if provider["name"] in self._providers:
+                raise Exception("Duplicate Provider {}".format(provider["name"]))
 
-            self._providers[provider['name']] = get_provider_from_config('info', provider)
+            self._providers[provider["name"]] = get_provider_from_config(
+                "info", provider
+            )
 
     def _calculate_metadata(self, entity_type, func_name, series, *args):
         """
@@ -74,26 +77,29 @@ class InfoAggregator(object):
         :param str func_name: the info method name to call
         :param Series series: the series this query is on
         """
-        config = self._config['rules'][entity_type]
+        config = self._config["rules"][entity_type]
 
         providers_to_query = set(config.values())
         if not providers_to_query:
-            providers_to_query = {self._config['default']}
+            providers_to_query = {self._config["default"]}
 
         # Load data for all providers that will be required in this merge
         provider_results = {}
         for provider in providers_to_query:
             if provider not in series.provider_ids:
-                log.warning('Provider %s is not linked to season %s, skipping in aggregation', provider, series.id)
+                log.warning(
+                    "Provider %s is not linked to season %s, skipping in aggregation",
+                    provider,
+                    series.id,
+                )
                 continue
 
             provider_results[provider] = getattr(self._providers[provider], func_name)(
-                series.provider_ids[provider],
-                *args
+                series.provider_ids[provider], *args
             )
 
         # Generate a base metadata object
-        base_provider = config.get('*', self._config['default'])
+        base_provider = config.get("*", self._config["default"])
         base = provider_results[base_provider]
         if len(provider_results) == 1:
             return base
@@ -112,13 +118,23 @@ class InfoAggregator(object):
                 for provider, results in provider_results.items():
                     if item.number not in results:
                         continue
-                    fields = [field for field, value in config.items() if value == provider and field != '*']
-                    new_items[item.number] = merge_named_tuple(new_items[item.number], results[item.number], fields)
+                    fields = [
+                        field
+                        for field, value in config.items()
+                        if value == provider and field != "*"
+                    ]
+                    new_items[item.number] = merge_named_tuple(
+                        new_items[item.number], results[item.number], fields
+                    )
 
             base = list(new_items.values())
         else:
             for provider, result in provider_results.items():
-                fields = [field for field, value in config.items() if value == provider and field != '*']
+                fields = [
+                    field
+                    for field, value in config.items()
+                    if value == provider and field != "*"
+                ]
                 base = merge_named_tuple(base, result, fields)
 
         return base
@@ -146,17 +162,17 @@ class InfoAggregator(object):
         return need_save
 
     def search_series(self, name):
-        provider = self._providers[self._config['default']]
+        provider = self._providers[self._config["default"]]
         return provider.search_series(name)
 
     def get_series_by_provider_id(self, provider_id):
-        return self._providers[self._config['default']].get_series(provider_id)
+        return self._providers[self._config["default"]].get_series(provider_id)
 
     def get_series(self, series):
-        return self._calculate_metadata('series', 'get_series', series)
+        return self._calculate_metadata("series", "get_series", series)
 
     def get_seasons(self, series):
-        return self._calculate_metadata('season', 'get_seasons', series)
+        return self._calculate_metadata("season", "get_seasons", series)
 
     def get_episodes(self, series, season):
-        return self._calculate_metadata('episode', 'get_episodes', series, season)
+        return self._calculate_metadata("episode", "get_episodes", series, season)

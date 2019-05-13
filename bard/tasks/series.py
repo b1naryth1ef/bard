@@ -18,7 +18,8 @@ def update_series(series):
     """
     from bard.tasks.season import update_season
     from bard.tasks.library import update_series_media
-    log.info('Performing update on series %s (%s)', series.name, series.id)
+
+    log.info("Performing update on series %s (%s)", series.name, series.id)
 
     # Update the series metadata
     series_info = providers.info.get_series(series)

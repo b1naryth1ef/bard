@@ -10,44 +10,41 @@ from .base import BaseDownloadProvider, HTTPSessionProviderMixin
 from bard.models.torrent import TorrentMetadata
 
 
-ID_RE = re.compile(r'\?id=(\d+)')
-PEERS_RE = re.compile(r'(\d)+ seeders \+ (\d+) leechers')
+ID_RE = re.compile(r"\?id=(\d+)")
+PEERS_RE = re.compile(r"(\d)+ seeders \+ (\d+) leechers")
 
 
 class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin):
-    PARAMS = {
-        'username',
-        'password',
-    }
+    PARAMS = {"username", "password"}
 
     URLS = {
-        'BASE': 'https://iptorrents.com',
-        'LOGIN': '/take_login.php',
-        'SEARCH': '/t',
-        'DOWNLOAD': '/download.php',
-        'INFO': '/details.php?id={}',
+        "BASE": "https://iptorrents.com",
+        "LOGIN": "/take_login.php",
+        "SEARCH": "/t",
+        "DOWNLOAD": "/download.php",
+        "INFO": "/details.php?id={}",
     }
 
     def login(self):
-        r = self.session.get(self.URLS['BASE'] + self.URLS['LOGIN'], params={
-            'username': self.username,
-            'password': self.password,
-        })
+        r = self.session.get(
+            self.URLS["BASE"] + self.URLS["LOGIN"],
+            params={"username": self.username, "password": self.password},
+        )
         r.raise_for_status()
 
         # TODO: validation for common errors
 
     def search(self, episode, exclude=None):
-        query = '{} S{}E{}'.format(
-            episode.series.name.replace("'", ''),
+        query = "{} S{}E{}".format(
+            episode.series.name.replace("'", ""),
             episode.season.number.zfill(2),
             episode.number.zfill(2),
         )
 
-        r = self.session.get(self.URLS['BASE'] + self.URLS['SEARCH'],
-            params=urlencode({
-                'q': query
-            }) + ';o=seeders')
+        r = self.session.get(
+            self.URLS["BASE"] + self.URLS["SEARCH"],
+            params=urlencode({"q": query}) + ";o=seeders",
+        )
 
         r.raise_for_status()
 
@@ -59,23 +56,26 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
 
     def get_torrent_contents(self, torrent_id):
         r = self.session.get(
-            self.URLS['BASE'] + self.URLS['DOWNLOAD'] + '/{0}/{0}.torrent'.format(torrent_id))
+            self.URLS["BASE"]
+            + self.URLS["DOWNLOAD"]
+            + "/{0}/{0}.torrent".format(torrent_id)
+        )
         r.raise_for_status()
         return r.content
 
     def _parse_torrent(self, torrent_id, raw):
-        if 'No torrent with this id.' in raw:
+        if "No torrent with this id." in raw:
             return None
 
         q = PyQuery(raw)
 
-        seeders, leechers = re.findall(PEERS_RE, q('.vat')[1].text)[0]
+        seeders, leechers = re.findall(PEERS_RE, q(".vat")[1].text)[0]
 
         return TorrentMetadata(
-            provider='iptorrents',
+            provider="iptorrents",
             provider_id=torrent_id,
-            title=next(q('.td_fname')[0].iterchildren()).text.strip(),
-            size=q('.vat')[3].text.split(' ')[0],
+            title=next(q(".td_fname")[0].iterchildren()).text.strip(),
+            size=q(".vat")[3].text.split(" ")[0],
             seeders=seeders,
             leechers=leechers,
         )
@@ -101,7 +101,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         for torrent in torrents:
             parts = list(torrent.iterchildren())
 
-            id = re.findall(ID_RE, next(parts[1].iterchildren()).attrib['href'])[0]
+            id = re.findall(ID_RE, next(parts[1].iterchildren()).attrib["href"])[0]
             if exclude and id in exclude:
                 continue
 
@@ -114,6 +114,8 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
             seeders = int(parts[7].text_content())
             leechers = int(parts[8].text_content())
 
-            results.append(TorrentMetadata('iptorrents', id, title, size, seeders, leechers))
+            results.append(
+                TorrentMetadata("iptorrents", id, title, size, seeders, leechers)
+            )
 
         return results

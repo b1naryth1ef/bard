@@ -2,12 +2,12 @@ from flask import request, redirect
 
 
 def magic_redirect(to=None):
-    if request.values.get('r'):
+    if request.values.get("r"):
         # NB: technically an open redirect
-        return redirect(request.values['r'])
+        return redirect(request.values["r"])
 
     if request.referrer.endswith(request.path):
-        return redirect('/')
+        return redirect("/")
 
     if to and to != request.path:
         return redirect(to)

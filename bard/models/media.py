@@ -6,24 +6,27 @@ from bard.models import BaseModel
 from bard.models.episode import Episode
 
 
-MediaMetadata = namedtuple('MediaMetadata', (
-    'season_number',
-    'episode_number',
-    'library_id',
-    'video_codec',
-    'audio_codec',
-    'width',
-    'height',
-    'duration',
-    'bitrate',
-    'path',
-    'size',
-))
+MediaMetadata = namedtuple(
+    "MediaMetadata",
+    (
+        "season_number",
+        "episode_number",
+        "library_id",
+        "video_codec",
+        "audio_codec",
+        "width",
+        "height",
+        "duration",
+        "bitrate",
+        "path",
+        "size",
+    ),
+)
 
 
 @BaseModel.register
 class Media(BaseModel):
-    episode = ForeignKeyField(Episode, backref='medias', on_delete='CASCADE')
+    episode = ForeignKeyField(Episode, backref="medias", on_delete="CASCADE")
 
     library_id = CharField(unique=True)
 
@@ -53,7 +56,7 @@ class Media(BaseModel):
         )
 
     def __repr__(self):
-        return u'<Media {}>'.format(self.id)
+        return u"<Media {}>".format(self.id)
 
     def update_from_metadata(self, metadata):
         self.video_codec = metadata.video_codec

@@ -9,10 +9,12 @@ def acl(group):
         @wraps(f)
         def _f(*args, **kwargs):
             if ACL_GROUPS.index(group) > ACL_GROUPS.index(g.acl):
-                return 'Incorrect ACL', 403
+                return "Incorrect ACL", 403
 
             return f(*args, **kwargs)
+
         return _f
+
     return deco
 
 
@@ -23,9 +25,11 @@ def model_getter(model):
             try:
                 result = model.select().where(model.id == id).get()
             except model.DoesNotExist:
-                flash('Unknown {} {}'.format(model.__name__, id), category='error')
-                return redirect('/')
+                flash("Unknown {} {}".format(model.__name__, id), category="error")
+                return redirect("/")
 
             return func(result, *args, **kwargs)
+
         return _f
+
     return deco
