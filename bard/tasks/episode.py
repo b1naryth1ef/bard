@@ -56,12 +56,16 @@ def find_torrent_for_episode(episode):
     if max_wait_minutes:
         cutoff = episode.airdate + timedelta(minutes=max_wait_minutes)
         if datetime.utcnow() < cutoff:
-            # Remove all results that may not be encoded at our desired quality
+            # Filter to only results matching our desired quality
             results = [i for i in results if desired_quality in i.title.lower()]
 
-            # If we have a result return that
+            # If we have any results at our desired quality, return highest seed
+            #  count
             if results:
                 return results[0]
+
+            # Otherwise return nothing and we'll try again later
+            return None
 
     # Grab qualities and order by highest first
     qualities_to_check = list(reversed(QUALITIES))
