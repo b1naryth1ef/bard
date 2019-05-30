@@ -3,7 +3,7 @@ from datetime import datetime
 
 from peewee import ForeignKeyField, IntegerField, CharField, DateTimeField
 
-from bard.models import BaseModel
+from bard.models import BaseModel, database
 from bard.models.season import Season
 from bard.providers import providers
 
@@ -77,10 +77,15 @@ class Episode(BaseModel):
 
         raw = providers.download.get_torrent_contents(torrent_metadata)
 
-        torrent = Torrent.from_metadata(self, torrent_metadata, raw)
-        torrent.fetch_provider_id = providers.fetch.download(torrent)
-        torrent.state = torrent.State.DOWNLOADING
-        torrent.save()
+        # If our upstream fetch provider has an error when downloading this could
+        #  leave unused torrent records sitting around the database despite the
+        #  episode remaining in WANTED. We atomic to ensure the row creation within
+        #  `from_metadata` is reverted if the upstream fetch provider has an error.
+        with database.atomic():
+            torrent = Torrent.from_metadata(self, torrent_metadata, raw)
+            torrent.fetch_provider_id = providers.fetch.download(torrent)
+            torrent.state = torrent.State.DOWNLOADING
+            torrent.save()
 
         # Only mark as FETCHED if we don't have local media assets
         if self.state != self.State.DOWNLOADED:
