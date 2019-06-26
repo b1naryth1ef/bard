@@ -1,0 +1,62 @@
+providers:
+  info:
+    sources:
+      - {"name": "tvdb"}
+      - {"name": "tvmaze"}
+      - {"name": "tmdb", "api_key": "..."}
+
+    default: tvdb
+
+    rules:
+      series:
+        '*': tvdb
+        banner: tvmaze
+      season:
+        '*': tvdb
+      episode:
+        '*': tvdb
+        airdate: tvmaze
+
+  download:
+    sources:
+      - {"name": "iptorrents", "username": "...", "password": "..."}
+      - {"name": "horriblesubs"}
+
+    default: iptorrents
+
+  fetch:
+    source: {"name": "transmission", "url": "https://my-transmission-with-rpc.com", "username": "admin", "password": "admin"}
+
+  notify:
+    source: {"name": "discord", "url": "https://discordapp.com/api/webhooks/..."}
+
+  library:
+    source:
+      name: plex
+      url: https://my-plex.com
+      token: '...'
+
+directories:
+  input: /media/transmission
+  output: /media/storage/media/TV
+  temporary: /media/storage/media/Staging
+
+web:
+  secret_key: 'my-big-secret-key'
+  host: ''
+  port: 7675
+  user_header: 'X-Heracles-User'
+  graphql: true
+
+quality:
+  desired: 1080p
+  max_wait_minutes: 120
+
+acls:
+  andrei: admin
+  guest: guest
+
+
+seed_days: 18
+
+database: sqlite://bard.db
