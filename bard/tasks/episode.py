@@ -93,9 +93,6 @@ def find_episodes():
 
     count = 0
     for episode in episodes:
-        if not episode.airdate:
-            continue
-
         torrent = find_torrent_for_episode(episode)
         if not torrent:
             log.info("Failed to find torrent for episode %s", episode.to_string())
