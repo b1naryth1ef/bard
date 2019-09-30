@@ -25,10 +25,8 @@ def get_path_size_on_disk(path):
 def scan_library():
     log.info("Performing a full library scan")
 
-    count = 0
     for series in Series.select():
-        count += update_series_media(series)
-    return count
+        update_series_media(series)
 
 
 def import_library():
