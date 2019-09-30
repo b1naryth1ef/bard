@@ -23,12 +23,14 @@ def update_season(season):
             episode = Episode.from_metadata(
                 season,
                 episode_info,
-                state=Episode.State.WANTED if season.subscribed else Episode.State.NONE,
+                state=Episode.State.WANTED
+                if season.series.subscribed
+                else Episode.State.NONE,
             )
             log.info(
                 "Added episode %s in state %s due to season %s being subscribed (%s)",
                 episode.id,
                 episode.state,
                 season.id,
-                season.subscribed,
+                season.series.subscribed,
             )

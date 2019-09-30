@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from peewee import ForeignKeyField, CharField, IntegerField, BooleanField
+from peewee import ForeignKeyField, CharField, IntegerField
 
 from bard.models import BaseModel
 from bard.models.series import Series
@@ -18,9 +18,6 @@ class Season(BaseModel):
 
     number = CharField()
     episode_count = IntegerField()
-
-    # Do we want upcoming epsidoes of this show to auto-subscribe?
-    subscribed = BooleanField(default=False)
 
     @classmethod
     def from_metadata(cls, series, metadata):
