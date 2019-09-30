@@ -74,8 +74,10 @@ def series_add():
                 "Added {} to tracked series".format(series_info.name),
                 category="success",
             )
+            return redirect("/series/{}".format(series.id))
     else:
         flash("Unknown Provider ID ({})".format(provider_id), category="error")
+
     return redirect("/series")
 
 
