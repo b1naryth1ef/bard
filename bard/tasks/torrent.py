@@ -102,14 +102,9 @@ def process_torrent(torrent, files):
     try:
         # If the torrent contains a rar file attempt to unpack that
         rar_files = [i for i in files if i.endswith(".rar")]
-        if len(rar_files) == 1:
+        if len(rar_files):
             log.debug("Found rar file in torrent %s, unpacking...", torrent.id)
             unpack_torrent(torrent, rar_files[0])
-            return
-        elif len(rar_files) > 1:
-            log.error(
-                "Found multiple rar files in torrent %s (%s)", torrent.id, rar_files
-            )
             return
 
         video_files = [i for i in files if _is_video_file(i)]
