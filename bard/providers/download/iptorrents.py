@@ -1,4 +1,5 @@
 import re
+import cfscrape
 
 try:
     from urllib import urlencode
@@ -18,7 +19,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
     PARAMS = {"username", "password"}
 
     URLS = {
-        "BASE": "https://iptorrents.com",
+        "BASE": "https://iptorrents.eu",
         "LOGIN": "/take_login.php",
         "SEARCH": "/t",
         "DOWNLOAD": "/download.php",
@@ -26,9 +27,14 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
     }
 
     def login(self):
+        self.cookies, self.ua = cfscrape.get_tokens(
+            url="https://iptorrents.eu/login.php"
+        )
         r = self.session.get(
             self.URLS["BASE"] + self.URLS["LOGIN"],
             params={"username": self.username, "password": self.password},
+            headers={"User-Agent": self.ua},
+            cookies=self.cookies,
         )
         r.raise_for_status()
 
@@ -44,6 +50,8 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         r = self.session.get(
             self.URLS["BASE"] + self.URLS["SEARCH"],
             params=urlencode({"q": query}) + ";o=seeders",
+            headers={"User-Agent": self.ua},
+            cookies=self.cookies,
         )
 
         r.raise_for_status()
@@ -58,7 +66,9 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
         r = self.session.get(
             self.URLS["BASE"]
             + self.URLS["DOWNLOAD"]
-            + "/{0}/{0}.torrent".format(torrent_id)
+            + "/{0}/{0}.torrent".format(torrent_id),
+            headers={"User-Agent": self.ua},
+            cookies=self.cookies,
         )
         r.raise_for_status()
         return r.content
