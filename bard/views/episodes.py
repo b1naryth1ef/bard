@@ -9,7 +9,10 @@ from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
-from bard.tasks.episode import find_torrent_for_episode
+from bard.tasks.episode import (
+    find_torrent_for_episode,
+    select_optimal_torrent_for_episode,
+)
 
 
 episodes = Blueprint("episodes", __name__)
@@ -104,7 +107,17 @@ def episodes_index(episode):
 @acl("user")
 def episodes_torrent_list(episode):
     torrents = providers.download.search(episode)
-    return render_template("episode/torrents.html", episode=episode, torrents=torrents)
+
+    optimal_torrent = None
+    if len(torrents):
+        optimal_torrent = select_optimal_torrent_for_episode(episode, torrents)
+
+    return render_template(
+        "episode/torrents.html",
+        episode=episode,
+        torrents=torrents,
+        optimal_torrent=optimal_torrent,
+    )
 
 
 @episodes.route("/episodes/<id>/fetch")

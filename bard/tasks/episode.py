@@ -16,38 +16,38 @@ def _download_provider_id(download_provider_id):
 
 def find_torrent_for_episode(episode):
     log.debug("Searching for episode `%s`", episode)
-
     results = providers.download.search(episode)
 
     if not len(results):
         log.debug("Failed to find any torrents for episode `%s`", episode)
         return None
 
+    return select_optimal_torrent_for_episode(episode, results)
+
+
+def select_optimal_torrent_for_episode(episode, torrents):
     # Filter out torrents we've already fetched
     existing_torrent_ids = (
         Torrent.select(Torrent.download_provider_id)
         .where(
             (Torrent.episode == episode)
-            & (Torrent.download_provider == results[0].provider)
+            & (Torrent.download_provider == torrents[0].provider)
         )
         .objects(_download_provider_id)
     )
-    results = [i for i in results if i.provider_id not in existing_torrent_ids]
+    torrents = [i for i in torrents if i.provider_id not in existing_torrent_ids]
 
-    if not len(results):
-        log.debug(
-            "Excluded all torrents based on previous fetches for episode `%s`", episode
-        )
+    if not len(torrents):
         return None
 
-    # Store the results by seeders
-    results = sorted(results, key=lambda i: i.seeders, reverse=True)
+    # Store the torrents by seeders
+    torrents = sorted(torrents, key=lambda i: i.seeders, reverse=True)
 
     # If we have no quality preferences set in the config, return the highest
     #  seeder count result.
     desired_quality = config["quality"].get("desired")
     if desired_quality is None:
-        return results[0]
+        return torrents[0]
 
     # If we're still in the time window defined by max_wait_minutes and calculated
     #  based on the episode airdate, that means we won't accept torrents detected
@@ -56,13 +56,13 @@ def find_torrent_for_episode(episode):
     if max_wait_minutes:
         cutoff = episode.airdate + timedelta(minutes=max_wait_minutes)
         if datetime.utcnow() < cutoff:
-            # Filter to only results matching our desired quality
-            results = [i for i in results if desired_quality in i.title.lower()]
+            # Filter to only torrents matching our desired quality
+            torrents = [i for i in torrents if desired_quality in i.title.lower()]
 
-            # If we have any results at our desired quality, return highest seed
+            # If we have any torrents at our desired quality, return highest seed
             #  count
-            if results:
-                return results[0]
+            if torrents:
+                return torrents[0]
 
             # Otherwise return nothing and we'll try again later
             return None
@@ -77,12 +77,12 @@ def find_torrent_for_episode(episode):
         qualities_to_check = [desired_quality] + qualities_to_check
 
     for quality in qualities_to_check:
-        for result in results:
+        for result in torrents:
             if quality in result.title.lower():
                 return result
 
     # Just return the highest seeder count result
-    return results[0]
+    return torrents[0]
 
 
 def find_episodes():
