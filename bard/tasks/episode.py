@@ -76,6 +76,17 @@ def select_optimal_torrent_for_episode(episode, torrents):
         qualities_to_check.remove(desired_quality)
         qualities_to_check = [desired_quality] + qualities_to_check
 
+    preferred_keywords = config["quality"].get("preferred_keywords")
+    if preferred_keywords is not None:
+        torrents = sorted(
+            torrents,
+            key=lambda i: 0
+            if any(
+                (keyword.lower() in i.title.lower()) for keyword in preferred_keywords
+            )
+            else 1,
+        )
+
     for quality in qualities_to_check:
         for result in torrents:
             if quality in result.title.lower():
