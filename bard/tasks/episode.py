@@ -43,6 +43,18 @@ def select_optimal_torrent_for_episode(episode, torrents):
     # Store the torrents by seeders
     torrents = sorted(torrents, key=lambda i: i.seeders, reverse=True)
 
+    # If we have any preferred keywords use them to sort our torrents now
+    preferred_keywords = config["quality"].get("preferred_keywords")
+    if preferred_keywords is not None:
+        torrents = sorted(
+            torrents,
+            key=lambda i: 0
+            if any(
+                (keyword.lower() in i.title.lower()) for keyword in preferred_keywords
+            )
+            else 1,
+        )
+
     # If we have no quality preferences set in the config, return the highest
     #  seeder count result.
     desired_quality = config["quality"].get("desired")
@@ -75,17 +87,6 @@ def select_optimal_torrent_for_episode(episode, torrents):
     if desired_quality:
         qualities_to_check.remove(desired_quality)
         qualities_to_check = [desired_quality] + qualities_to_check
-
-    preferred_keywords = config["quality"].get("preferred_keywords")
-    if preferred_keywords is not None:
-        torrents = sorted(
-            torrents,
-            key=lambda i: 0
-            if any(
-                (keyword.lower() in i.title.lower()) for keyword in preferred_keywords
-            )
-            else 1,
-        )
 
     for quality in qualities_to_check:
         for result in torrents:
