@@ -7,7 +7,6 @@
     <th>Title</th>
     <th>Size</th>
     <th>S/L</th>
-    <th>Days Left</th>
   </tr>
   {% for torrent in torrents %}
   <tr>
@@ -17,7 +16,6 @@
     <td>{{ torrent.title|truncate(64) }}</td>
     <td>{{ torrent.size }}</td>
     <td>{{ torrent.seeders }} / {{ torrent.leechers }}</td>
-    <td>{{ torrent.seeding_days_left }}</td>
     {% if g.acl == 'admin' %}
     <td>
       <a style="color: orange" href="/torrents/{{ torrent.id }}/process">P</a>

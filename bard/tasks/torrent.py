@@ -3,7 +3,6 @@ import shutil
 import rarfile
 import logging
 import mimetypes
-from datetime import datetime, timedelta
 
 from bard.app import config
 from bard.providers import providers
@@ -39,7 +38,6 @@ def update_torrents():
         previous_state = torrent.state
 
         torrent.state = torrent_info.state
-        torrent.done_date = torrent_info.done_date.replace(tzinfo=None)
         torrent.save()
 
         if previous_state == Torrent.State.DOWNLOADING:
@@ -159,8 +157,13 @@ def prune_torrents():
 
     torrent_infos = providers.fetch.get_torrent_info(seeding.values())
     for info in torrent_infos:
-        done_date = info.done_date.replace(tzinfo=None)
-        if done_date < datetime.utcnow() - timedelta(days=config["seed_days"]):
+        if (info.seconds_seeding / 60 / 60 / 24) > config["seed_days"]:
+            log.info(
+                "Pruning torrent %s which has seeded for %s days (%ss)",
+                info.id,
+                info.seconds_seeding / 60 / 60 / 24,
+                info.seconds_seeding,
+            )
             seeding[info.id].state = Torrent.State.COMPLETED
             seeding[info.id].save()
             providers.fetch.remove(seeding[info.id])

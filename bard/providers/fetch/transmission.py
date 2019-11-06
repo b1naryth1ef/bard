@@ -161,6 +161,7 @@ class TransmissionFetchProvider(object):
         "percentDone",
         "pieces",
         "secondsDownloading",
+        "secondsSeeding",
     ]
 
     def __init__(self, opts):
@@ -217,7 +218,7 @@ class TransmissionFetchProvider(object):
             yield TorrentFetchInfo(
                 id=item["hashString"],
                 state=self._get_state_from_info(item),
-                done_date=item["doneDate"],
+                seconds_seeding=item["secondsSeeding"],
                 peers=item["peers"],
                 percent_done=item["percentDone"],
                 files=[i["name"] for i in item["files"]],
