@@ -42,7 +42,7 @@ class IPTorrentsDownloadProvider(BaseDownloadProvider, HTTPSessionProviderMixin)
 
     def search(self, episode, exclude=None):
         query = "{} S{}E{}".format(
-            episode.series.name.replace("'", ""),
+            episode.series.search_name.replace("'", ""),
             episode.season.number.zfill(2),
             episode.number.zfill(2),
         )

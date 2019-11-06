@@ -42,7 +42,7 @@ class HorribleSubsDownloadProvider(object):
                 yield link
 
     def search(self, episode):
-        show_name = episode.series.name.replace(" ", "-")
+        show_name = episode.series.search_name.replace(" ", "-")
         if episode.season.number != "1":
             show_name += "-s{}".format(episode.season.number)
 

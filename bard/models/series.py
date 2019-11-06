@@ -38,6 +38,7 @@ class Series(BaseModel):
     # Basic info
     name = CharField()
     storage_name_override = CharField(null=True)
+    search_name_override = CharField(null=True)
     desc = CharField(null=True)
     network = CharField(null=True)
     content_rating = CharField(null=True)
@@ -61,6 +62,10 @@ class Series(BaseModel):
 
     def __repr__(self):
         return u"<Series {} ({})>".format(self.id, self.name)
+
+    @property
+    def search_name(self):
+        return self.search_name_override or self.name
 
     @property
     def clean_name(self):
