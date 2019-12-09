@@ -219,6 +219,7 @@ class TransmissionFetchProvider(object):
                 id=item["hashString"],
                 state=self._get_state_from_info(item),
                 seconds_seeding=item["secondsSeeding"],
+                done_date=item["doneDate"],
                 peers=item["peers"],
                 percent_done=item["percentDone"],
                 files=[i["name"] for i in item["files"]],
