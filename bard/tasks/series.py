@@ -1,5 +1,6 @@
 import logging
 
+from peewee import IntegrityError
 from bard.providers import providers
 from bard.models.series import Series
 from bard.models.season import Season
@@ -8,8 +9,8 @@ log = logging.getLogger(__name__)
 
 
 def update_all_series():
-    for series in Series.select():
-        update_series(series)
+    for (series_id, ) in Series.select(Series.id).tuples():
+        update_series(Series.get(id=series_id))
 
 
 def update_series(series):
@@ -22,9 +23,12 @@ def update_series(series):
     log.info("Performing update on series %s (%s)", series.name, series.id)
 
     # Update the series metadata
-    series_info = providers.info.get_series(series)
-    series.update_from_metadata(series_info)
-    series.save()
+    try:
+        series_info = providers.info.get_series(series)
+        series.update_from_metadata(series_info)
+        series.save()
+    except IntegrityError:
+        log.exception("Failed to update_series %s (%s)", series.name, series.id)
 
     seasons = providers.info.get_seasons(series)
     for season_info in seasons:
