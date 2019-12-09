@@ -14,14 +14,15 @@
     <tr>
       <td>{{ torrent.title }}
         {% if optimal_torrent and optimal_torrent.provider_id == torrent.provider_id %}
-          <span style="color: green">(optimal)</span>
+        <span style="color: green">(optimal)</span>
         {% endif %}
       </td>
       <td>{{ torrent.size }}</td>
       <td>{{ torrent.seeders }} / {{ torrent.leechers }}</td>
       {% if g.acl == 'admin' %}
       <td>
-        <a title="Fetch Torrent" style="color: green" href="/episodes/{{ episode.id }}/fetch?provider_id={{ torrent.provider_id }}">F</a>
+        <a title="Fetch Torrent" style="color: green"
+          href="/episodes/{{ episode.id }}/fetch?provider_id={{ torrent.provider_id }}">F</a>
       </td>
       {% endif %}
     </tr>
