@@ -1,0 +1,8 @@
+{% macro render_episode_torrent_upload(episode) %}
+<div>
+    <form action="/episodes/{{ episode.id }}/fetch" method="post" enctype="multipart/form-data">
+        <input type="file" name="torrent" id="torrent">
+        <input type="submit" value="Upload Torrent" name="submit">
+    </form>
+</div>
+{% endmacro %}

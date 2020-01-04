@@ -1,4 +1,5 @@
 {% from 'torrent/list.html' import render_torrent_list %}
+{% from 'episode/upload.html' import render_episode_torrent_upload %}
 
 {% extends "base.html" %}
 {% block body %}
@@ -29,4 +30,5 @@
     {% endfor %}
   </table>
 </div>
+{{ render_episode_torrent_upload(episode) }}
 {% endblock %}

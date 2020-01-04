@@ -81,11 +81,17 @@ class Episode(BaseModel):
         #  leave unused torrent records sitting around the database despite the
         #  episode remaining in WANTED. We atomic to ensure the row creation within
         #  `from_metadata` is reverted if the upstream fetch provider has an error.
+        # TODO: `Torrent.from_metadata` should just return a unsaved Torrent object
+        #  so we can avoid this and related sheneigans inside of
+        #  views/episode.py:episode_fetch_direct
         with database.atomic():
             torrent = Torrent.from_metadata(self, torrent_metadata, raw)
-            torrent.fetch_provider_id = providers.fetch.download(torrent)
-            torrent.state = torrent.State.DOWNLOADING
-            torrent.save()
+            self.fetch_torrent(torrent)
+
+    def fetch_torrent(self, torrent):
+        torrent.fetch_provider_id = providers.fetch.download(torrent)
+        torrent.state = torrent.State.DOWNLOADING
+        torrent.save()
 
         # Only mark as FETCHED if we don't have local media assets
         if self.state != self.State.DOWNLOADED:

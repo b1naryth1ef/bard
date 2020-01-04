@@ -5,10 +5,12 @@ except ImportError:
 
 from flask import Blueprint, request, redirect, render_template, flash
 
+from bard.models import database
 from bard.providers import providers
 from bard.util.deco import model_getter, acl
 from bard.util.redirect import magic_redirect
 from bard.models.episode import Episode
+from bard.models.torrent import Torrent
 from bard.tasks.episode import (
     find_torrent_for_episode,
     select_optimal_torrent_for_episode,
@@ -137,4 +139,33 @@ def episode_fetch(episode):
     else:
         flash("Invalid or expired torrent", category="error")
 
+    return magic_redirect("/episodes/{}".format(episode.id))
+
+
+@episodes.route("/episodes/<id>/fetch", methods=['POST'])
+@episode_getter
+@acl("admin")
+def episode_fetch_direct(episode):
+    if 'torrent' not in request.files:
+        flash("No torrent provided", category="error")
+        return magic_redirect("/episodes/{}/torrents".format(episode.id))
+
+    if not request.files['torrent'].mimetype == 'application/x-bittorrent':
+        flash("Invalid torrent file", category="error")
+        return magic_redirect("/episodes/{}/torrents".format(episode.id))
+
+    with database.atomic():
+        torrent = Torrent.create(
+            episode=episode,
+            state=Torrent.State.DOWNLOADING,
+            title="User Uploaded Torrent",
+            size=0,
+            seeders=0,
+            leechers=0,
+            raw=request.files["torrent"].read(),
+        )
+
+        episode.fetch_torrent(torrent)
+
+    flash("Ok, started a download of that torrent for this episode", category="success")
     return magic_redirect("/episodes/{}".format(episode.id))
