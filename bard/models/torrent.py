@@ -37,7 +37,7 @@ class Torrent(BaseModel):
     episode = ForeignKeyField(Episode, backref="torrents", on_delete="CASCADE")
     state = IntegerField(default=State.NONE, choices=State.ALL)
 
-    # Whether this torrent was post-processed
+    # Whether this torrent was post-processed, does not indicate success
     processed = BooleanField(default=False)
 
     # Torrent metadata (not updated from fetch provider)

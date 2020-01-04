@@ -37,14 +37,12 @@ def update_torrents():
     torrent_infos = list(providers.fetch.get_torrent_info(torrents.values()))
     for torrent_info in torrent_infos:
         torrent = torrents.pop(torrent_info.id)
-        previous_state = torrent.state
 
         torrent.state = torrent_info.state
         torrent.save()
 
-        if previous_state == Torrent.State.DOWNLOADING:
-            if torrent.state in (Torrent.State.SEEDING, Torrent.State.COMPLETED):
-                process_torrent(torrent, torrent_info.files)
+        if not torrent.processed and torrent.state in (Torrent.State.SEEDING, Torrent.State.COMPLETED):
+            process_torrent(torrent, torrent_info.files)
 
     # TODO: check if we have anything left in torrents
     return len(torrent_infos)
@@ -99,31 +97,31 @@ def _store_torrent_media(torrent, source_path, keep=False):
 def process_torrent(torrent, files):
     log.info("Processing torrent %s", torrent.id)
 
-    try:
-        # If the torrent contains a rar file attempt to unpack that
-        rar_files = [i for i in files if i.endswith(".rar")]
-        if len(rar_files):
-            log.debug("Found rar file in torrent %s, unpacking...", torrent.id)
-            unpack_torrent(torrent, rar_files[0])
-            return
+    # Mark the torrent as processed now so nobody else tries to process
+    torrent.processed = True
+    torrent.save()
 
-        video_files = [i for i in files if _is_video_file(i)]
-        if len(video_files) == 1:
-            log.debug(
-                "Found video file in torrent %s, moving and reverse symlinking",
-                torrent.id,
-            )
-            source_path = os.path.join(config["directories"]["input"], video_files[0])
-            _store_torrent_media(torrent, source_path, keep=True)
-            return
-        elif len(video_files) > 1:
-            log.error(
-                "Found multiple video files in torrent %s (%s)", torrent.id, video_files
-            )
-            return
-    finally:
-        torrent.processed = True
-        torrent.save()
+    # If the torrent contains a rar file attempt to unpack that
+    rar_files = [i for i in files if i.endswith(".rar")]
+    if len(rar_files):
+        log.debug("Found rar file in torrent %s, unpacking...", torrent.id)
+        unpack_torrent(torrent, rar_files[0])
+        return
+
+    video_files = [i for i in files if _is_video_file(i)]
+    if len(video_files) == 1:
+        log.debug(
+            "Found video file in torrent %s, moving and reverse symlinking",
+            torrent.id,
+        )
+        source_path = os.path.join(config["directories"]["input"], video_files[0])
+        _store_torrent_media(torrent, source_path, keep=True)
+        return
+    elif len(video_files) > 1:
+        log.error(
+            "Found multiple video files in torrent %s (%s)", torrent.id, video_files
+        )
+        return
 
 
 def unpack_torrent(torrent, rar_file):
