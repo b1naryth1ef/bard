@@ -6,7 +6,12 @@ from bard.models.media import MediaMetadata
 class PlexLibraryProvider(object):
     def __init__(self, config):
         self.config = config
-        self.plex = PlexServer(config["url"], config["token"])
+
+    @property
+    def plex(self):
+        if not hasattr(self, '_plex'):
+            self._plex = PlexServer(self.config["url"], self.config["token"])
+        return self._plex
 
     @property
     def _section(self):
